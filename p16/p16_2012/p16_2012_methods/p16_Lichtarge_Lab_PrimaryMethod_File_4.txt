@@ -1,0 +1,4 @@
+The phenotype of p16 mutations was predicted through an Evolutionary Action (EA) equation between genotype variations and phenotype responses. This equation accounts algebraically for the likelihood that a sequence position tolerates substitutions and for the likelihood that a given substitution alters function at any position. Although these terms can be estimated through a variety of approaches the method of choice used here exploited phylogenomic profiles computed by Evolutionary Tracing (ET).
+
+The EA scores range from 0 (wt) to 100 (most deleterious), so the proliferation rate was estimated as: pr. rate = 50+EA/2
+

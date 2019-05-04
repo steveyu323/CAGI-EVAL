@@ -1,0 +1,6 @@
+DrDancer
+http://snps.biofold.org/drcancer
+
+Capriotti E, Altman RB (2011). A new disease-specific machine learning
+approach for the prediction of cancer-causing missense variants. 
+Genomics, 98:310-7. PMID: 21763417.

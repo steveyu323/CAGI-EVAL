@@ -1,0 +1,8 @@
+Meta-SNP
+http://snps.biofold.org/meta-snp
+
+Consensus method including PANTHER, PhD-SNP, SIFT and SNAP.
+Will be preseneted in:
+Capriotti et al. (2013). Collective judgment predicts 
+disease-associated single nucleotide variants
+BMC Genomics. In press.

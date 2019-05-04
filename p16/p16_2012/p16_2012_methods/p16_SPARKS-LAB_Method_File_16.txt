@@ -1,0 +1,3 @@
+Method:
+
+The prediction was derived by rescaling the PSSM value difference between wild type and mutation type. The scaling parameters were decided by the training dataset.

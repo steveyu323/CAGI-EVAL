@@ -1,0 +1,27 @@
+"spearman.coefficient.n=357" "p.value"
+"Group_1-prediction_file_nocomments-1" 0.0995352723425922 0.0602805633574378
+"Group_1-prediction_file_nocomments-2" 0.0725832788649945 0.171181729583038
+"Group_1-prediction_file_nocomments-3" 0.0648068243917575 0.221904732862666
+"Group_2-prediction_file_nocomments-1" 0.0841368779565001 0.112521869515834
+"Group_2-prediction_file_nocomments-2" 0.0859633886954849 0.104902523270831
+"Group_3-prediction_file_nocomments-1" 0.0742531993309433 0.161517550052847
+"Group_3-prediction_file_nocomments-2" 0.100460659640351 0.057921555767629
+"Group_3-prediction_file_nocomments-3" 0.0603815196538477 0.255156962072254
+"Group_4-prediction_file_nocomments-1" 0.0447739346854539 0.398985345891724
+"Group_4-prediction_file_nocomments-2" -0.0497872363820715 0.348252193187772
+"Group_4-prediction_file_nocomments-3" 0.0581076029912529 0.2735228460392
+"Group_5-prediction_file_nocomments-1" 0.154110776054814 0.00370116937153426
+"Group_5-prediction_file_nocomments-2" 0.105363243981155 0.0479193047223137
+"Group_6-prediction_file_nocomments-1" 0.253996810626178 1.16049072612339e-06
+"Group_6-prediction_file_nocomments-2" 0.302973857957883 5.14765260128399e-09
+"Group_6-prediction_file_nocomments-3" 0.319043292709463 6.87415696121695e-10
+"Group_6-prediction_file_nocomments-4" 0.256183750714607 9.31522758346142e-07
+"Group_6-prediction_file_nocomments-5" 0.303044145561438 5.10385577772485e-09
+"Group_6-prediction_file_nocomments-6" 0.288938249263561 2.71020282188011e-08
+"Group_6-prediction_file_nocomments-7" 0.305478844455269 3.79094330365131e-09
+"Group_7-prediction_file_nocomments-1" 0.0873325676494726 0.099463053442599
+"Group_7-prediction_file_nocomments-2" 0.0460342173786339 0.385832248148151
+"Group_7-prediction_file_nocomments-3" 0.101735499930124 0.054797318386927
+"Group_7-prediction_file_nocomments-4" 0.114413695320043 0.0306718935792168
+"Group_7-prediction_file_nocomments-5" 0.107094208412302 0.0431548525559934
+"Group_7-prediction_file_nocomments-6" 0.136182818112996 0.00999256373200463

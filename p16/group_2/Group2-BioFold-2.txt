@@ -1,0 +1,11 @@
+Variant 	Proliferation-rate 	Standard-Deviation
+p.G23R c.67G>C		0.885	0.041
+p.G23S: c.67G>A		0.821	0.067
+p.G23V c.68G>T		0.892	0.062
+p.G35E: c.104G>A		0.805	0.004
+p.L65P: c.194T>C		0.740	0.053
+p.G23C c.67G>T		0.893	0.043
+p.G23A c.68G>C  		0.873	0.043
+p.L94P: c.281 T>C		0.930	0.018
+p.G35W: c.103G>T		0.796	0.025
+p.G35R: c.103G>A; 103G>C		0.802	0.037

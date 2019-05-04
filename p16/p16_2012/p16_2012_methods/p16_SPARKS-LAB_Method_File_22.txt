@@ -1,0 +1,3 @@
+Method:
+
+The prediction was derived by rescaling the ddG computed by dmutant between wild type and mutation type. The scaling parameters were decided by the training dataset.

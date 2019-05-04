@@ -1,0 +1,11 @@
+SNPs&GO
+http://snps.biofold.org/snps-and-go
+
+Calabrese R et al. (2009). Functional annotations improve the predictive 
+score of human disease-related mutations in proteins. Hum Mutat, 
+30:1237-44. PMID: 19514061
+
+Recent implementetion will be described in 
+Capriotti E et al. (2013). WS-SNPs&GO: a web server for predicting the 
+deleterious effect of human protein variants using functional annotation.
+BMC Genomics. In press

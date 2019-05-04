@@ -1,0 +1,125 @@
+---
+title: "GAA-EVAL.R"
+author: "Changhua Yu"
+date: "4/2/2019"
+output: html_document
+---
+# A demo for GAA Submission evaluation package
+```{r}
+source("GAA-EVAL.R")
+```
+
+## Read in the Experimental data provided by CAGI
+```{r}
+exp.data <- read.RealData(file = "exp_data.csv", sep = ",",
+                             col.id = 2, col.value = 5, col.sd = 6)
+```
+
+## Read in the submission folders
+```{r}
+sub.data <- read.Submission.Folder(folder.name = "prediction/",col.id = 1,
+                                      col.value = 2, col.sd = 3, real.data = exp.data)
+```
+
+## ScatterPlot inspection
+```{r}
+#plot_all_scatter(real.data = exp.data, pred.data = sub.data, z.transform = TRUE)
+```
+
+## Correlation-based Evaluation
+```{r}
+# 1. Render coefficient value
+result.cor.pearson <- eval.Correlation(real.data = exp.data, pred.data = sub.data,
+                                       method = "pearson", sd.use = 0.3,z.transform = TRUE)
+head(result.cor.pearson)
+# 2. Plot Correlation
+plot.Correlation(result.cor.pearson, "Pearson")
+```
+
+## RMSD-based Evaluation
+```{r}
+result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = TRUE, density.distance.adjust = FALSE, variance.normalization = TRUE)
+head(result.rmsd)
+plot.RMSD(result.rmsd, method="")
+
+# with variance.normalization
+result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = TRUE, density.distance.adjust = FALSE, variance.normalization = FALSE)
+head(result.rmsd)
+plot.RMSD(result.rmsd, method="")
+```
+
+
+## Cut-off-based Evaluation
+```{r}
+result.auc.0.9 <- eval.AUC(real.data =exp.data, pred.data = sub.data, 
+                           threshold = 0.9)
+head(result.auc.0.9)
+plot.AUC(real.data =exp.data, pred.data = sub.data, threshold = 0.9)
+```
+
+## Between-method Evaluation
+```{r}
+# for all the submission files
+result.bM.spearman <-eval.Correlation.Between(real.data = exp.data, pred.data = sub.data,
+                                              method = "spearman",sd.use = 0.5,z.transform = TRUE)
+plot.Correlation.Between(result.bM.spearman$coefficient, method="Spearman")
+
+
+# for best submission of each group
+result.bM.spearman <-eval.Correlation.Between(real.data = exp.data, pred.data = sub.data,
+                                              method = "pearson",sd.use = 0.5,z.transform = TRUE,grouped = TRUE)
+plot.Correlation.Between(result.bM.spearman$coefficient, method="pearson")
+```
+
+## Partial-Correlation Evaluation
+```{r}
+result.pCor <- eval.Partial.Correlation(real.data = exp.data, pred.data = sub.data, method = "spearman")
+plot.Correlation.Between(result.bM.spearman$coefficient, method="Spearman")
+```
+
+## PCA Plot
+```{r}
+total = cbind(real = exp.data$value,sub.data$value)
+Plot.PCA(na.omit(total), labels=F, legend=TRUE) 
+```
+
+## Uniqueness Evaluation
+```{r}
+# uniqueness as adj.r^2 difference between total linear model and linear models without certain group
+result.uniq = eval.uniqueness(real.data = exp.data, pred.data = sub.data)
+result.uniq
+plot.uniqueness(result.uniq, method="")
+```
+
+## Bootstrap Analysis
+> For Correlation-based Evaluation, provide mean, CI, and median pval
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.pearson <- eval.Correlation(real.data = exp.data, pred.data = sub.data,
+                                       method = "pearson", sd.use = 0.3,z.transform = TRUE,boot = T)
+head(boot.result.cor.pearson)
+# 2. Plot Correlation
+plot.Correlation(boot.result.cor.pearson, "Pearson",boot = TRUE)
+```
+
+
+> For RMSD-based Evaluation
+
+```{r}
+boot.result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = TRUE, density.distance.adjust = TRUE, variance.normalization = TRUE,boot = TRUE)
+head(boot.result.rmsd)
+plot.RMSD(boot.result.rmsd, method="",boot = TRUE)
+```
+
+> For Uniqueness Evaluation
+
+```{r}
+result.uniq = eval.uniqueness(real.data = exp.data, pred.data = sub.data,boot = TRUE)
+result.uniq
+plot.uniqueness(result.uniq, method="",boot = TRUE)
+```
+

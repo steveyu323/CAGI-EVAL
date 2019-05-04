@@ -1,0 +1,3 @@
+Method:
+
+The prediction model was predicted using SVM with linear kernel function. The input features include: the PSSM value of mutation residue type, the PSSM value change, ddG computed from ROSETTA3, and ddG computed from dMutant.
