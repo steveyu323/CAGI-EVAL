@@ -6,7 +6,7 @@ output: html_document
 ---
 # A demo for GAA Submission evaluation package
 ```{r}
-source("GAA-EVAL.R")
+source("../GAA-EVAL.R")
 ```
 
 ## Read in the Experimental data provided by CAGI

@@ -1,37 +1,43 @@
 ---
-title: "GAA-EVAL.R"
+title: "SUMO EVAL"
 author: "Changhua Yu"
 date: "4/2/2019"
 output: html_document
 ---
-# A demo for GAA Submission evaluation package
-```{r}
-source("GAA-EVAL.R")
+# A demo for SUMO Submission evaluation package
+```{r, echo=T, results='hide',message=FALSE}
+source("../GAA-EVAL.R")
 ```
 
 ## Read in the Experimental data provided by CAGI
-```{r}
-exp.data <- read.RealData(file = "exp_data.txt", sep = "\t",
-                             col.id = 1, col.value = 2, col.sd = 3)
-head(exp.data$value)
+```{r,echo=T, results='hide',message=FALSE}
+exp.data <- read.RealData(file = "exp_data.csv", sep = "\t",
+                             col.id = 1, col.value = 2, col.sd = 3,na.character = 'NA')
+length(exp.data$value)
+exp.data.s <- read.RealData(file = "exp_data_s.csv", sep = ",",
+                             col.id = 1, col.value = 2, col.sd = 3,na.character = 'NA')
+head(exp.data.s$value)
 ```
 
 ## Read in the submission folders
-```{r}
+```{r echo=T, results='hide',message=FALSE}
 sub.data <- read.Submission.Folder(folder.name = "prediction/",col.id = 1,
                                       col.value = 2, col.sd = 3, real.data = exp.data)
+sub.data.s = read.Submission.Folder(folder.name = "prediction/",col.id = 1,
+                                      col.value = 2, col.sd = 3, real.data = exp.data.s)
 sub.data = addGroup(sub.data,c(1,1,2,3,3,4,4,5,6,6,6,6,7,8,9,9))
+sub.data.s = addGroup(sub.data.s,c(1,1,2,3,3,4,4,5,6,6,6,6,7,8,9,9))
 ```
 
 ## ScatterPlot inspection
-```{r}
+```{r,message=FALSE}
 plot_all_scatter(real.data = exp.data, pred.data = sub.data, z.transform = TRUE)
 ```
 
 ## Correlation-based Evaluation
 ```{r}
 # 1. Render coefficient value
-result.cor.pearson <- eval.Correlation(real.data = exp.data, pred.data = sub.data,
+result.cor.pearson <- eval.Correlation(real.data = exp.data.s, pred.data = sub.data.s,
                                        method = "pearson", sd.use = NA,z.transform = TRUE)
 head(result.cor.pearson)
 # 2. Plot Correlation
@@ -40,22 +46,34 @@ plot.Correlation(result.cor.pearson, "Pearson")
 
 ## RMSD-based Evaluation
 ```{r}
-result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+result.rmsd1 <- eval.RMSD(real.data = exp.data.s, pred.data = sub.data.s,sd.use = NA, 
                       density.distance = TRUE, density.distance.adjust = FALSE, variance.normalization = TRUE)
-head(result.rmsd)
-plot.RMSD(result.rmsd, method="")
+head(result.rmsd1)
+plot.RMSD(result.rmsd1, method="")
 
 # with variance.normalization
-result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+result.rmsd2 <- eval.RMSD(real.data = exp.data.s, pred.data = sub.data.s,sd.use = NA, 
+                      density.distance = FALSE, density.distance.adjust = FALSE, variance.normalization = TRUE)
+head(result.rmsd2)
+plot.RMSD(result.rmsd2, method="")
+
+# with variance.normalization
+result.rmsd3 <- eval.RMSD(real.data = exp.data.s, pred.data = sub.data.s,sd.use = NA, 
                       density.distance = TRUE, density.distance.adjust = FALSE, variance.normalization = FALSE)
-head(result.rmsd)
-plot.RMSD(result.rmsd, method="")
+head(result.rmsd3)
+plot.RMSD(result.rmsd3, method="")
+
+# with variance.normalization
+result.rmsd4 <- eval.RMSD(real.data = exp.data.s, pred.data = sub.data.s,sd.use = NA, 
+                      density.distance = FALSE, density.distance.adjust = FALSE, variance.normalization = FALSE)
+head(result.rmsd4)
+plot.RMSD(result.rmsd4, method="")
 ```
 
 
 ## Cut-off-based Evaluation
 ```{r}
-result.auc.0.4 <- eval.AUC(real.data = exp.data, pred.data = sub.data, 
+result.auc.0.4 <- eval.AUC(real.data = exp.data.s, pred.data = sub.data.s, 
                            threshold = 0.4,z.transform = T)
 head(result.auc.0.4$results)
 plot.AUC(result.auc.0.4)
@@ -64,26 +82,27 @@ plot.AUC(result.auc.0.4)
 ## Between-method Evaluation
 ```{r}
 # for all the submission files
-result.bM.spearman <-eval.Correlation.Between(real.data = exp.data, pred.data = sub.data,
-                                              method = "spearman",sd.use = NA,z.transform = TRUE)
-plot.Correlation.Between(result.bM.spearman$coefficient, method="Spearman")
+result.bM.pearson <-eval.Correlation.Between(real.data = exp.data.s, pred.data = sub.data.s,
+                                              method = "pearson",sd.use = NA,z.transform = TRUE)
+plot.Correlation.Between(result.bM.pearson$coefficient, method="pearson")
 
 
 # for best submission of each group
-result.bM.spearman <-eval.Correlation.Between(real.data = exp.data, pred.data = sub.data,
+result.bM.pearson <-eval.Correlation.Between(real.data = exp.data, pred.data = sub.data,
                                               method = "pearson",sd.use = NA,z.transform = TRUE,grouped = TRUE)
-plot.Correlation.Between(result.bM.spearman$coefficient, method="pearson")
+plot.Correlation.Between(result.bM.pearson$coefficient, method="pearson")
 ```
 
 ## Partial-Correlation Evaluation
 ```{r}
-result.pCor <- eval.Partial.Correlation(real.data = exp.data, pred.data = sub.data, method = "spearman")
-plot.Correlation.Between(result.bM.spearman$coefficient, method="Spearman")
+# result.pCor <- eval.Partial.Correlation(real.data = exp.data, pred.data = sub.data, method = "spearman")
+# plot.Correlation.Between(result.bM.spearman$coefficient, method="Spearman")
 ```
 
 ## PCA Plot
 ```{r}
-total = cbind(real = exp.data$value,sub.data$value)
+length(exp.data.s$value)
+total = cbind(real = exp.data.s$value,sub.data.s$value)
 Plot.PCA(na.omit(total), labels=F, legend=TRUE) 
 ```
 
@@ -93,6 +112,9 @@ Plot.PCA(na.omit(total), labels=F, legend=TRUE)
 result.uniq = eval.uniqueness(real.data = exp.data, pred.data = sub.data)
 result.uniq
 plot.uniqueness(result.uniq, method="")
+result.uniq.s = eval.uniqueness(real.data = exp.data.s, pred.data = sub.data.s)
+sub.data.s$group$group
+plot.uniqueness(result.uniq.s, method="")
 ```
 
 ## Bootstrap Analysis
@@ -100,7 +122,7 @@ plot.uniqueness(result.uniq, method="")
 
 ```{r}
 # 1. Render coefficient value
-boot.result.cor.pearson <- eval.Correlation(real.data = exp.data, pred.data = sub.data,
+boot.result.cor.pearson <- eval.Correlation(real.data = exp.data.s, pred.data = sub.data.s,
                                        method = "pearson", sd.use = NA,z.transform = TRUE,boot = T)
 head(boot.result.cor.pearson)
 # 2. Plot Correlation
@@ -111,10 +133,38 @@ plot.Correlation(boot.result.cor.pearson, "Pearson",boot = TRUE)
 > For RMSD-based Evaluation
 
 ```{r}
-boot.result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
-                      density.distance = F, density.distance.adjust = F, variance.normalization = T,boot = TRUE)
-head(boot.result.rmsd)
-plot.RMSD(boot.result.rmsd, method="",boot = TRUE)
+# 1. Render coefficient value
+result.cor.pearson <- eval.Correlation(real.data = exp.data.s, pred.data = sub.data.s,
+                                       method = "pearson", sd.use = NA,z.transform = TRUE)
+head(result.cor.pearson)
+# 2. Plot Correlation
+plot.Correlation(result.cor.pearson, "Pearson")
+```
+
+## RMSD-based Evaluation
+```{r}
+result.rmsd1 <- eval.RMSD(real.data = exp.data.s, pred.data = sub.data.s,sd.use = NA, 
+                      density.distance = TRUE, density.distance.adjust = FALSE, variance.normalization = TRUE,boot = T)
+head(result.rmsd1)
+plot.RMSD(result.rmsd1, method="")
+
+# with variance.normalization
+result.rmsd2 <- eval.RMSD(real.data = exp.data.s, pred.data = sub.data.s,sd.use = NA, 
+                      density.distance = FALSE, density.distance.adjust = FALSE, variance.normalization = TRUE,boot = T)
+head(result.rmsd2)
+plot.RMSD(result.rmsd2, method="")
+
+# with variance.normalization
+result.rmsd3 <- eval.RMSD(real.data = exp.data.s, pred.data = sub.data.s,sd.use = NA, 
+                      density.distance = TRUE, density.distance.adjust = FALSE, variance.normalization = FALSE,boot = T)
+head(result.rmsd3)
+plot.RMSD(result.rmsd3, method="")
+
+# with variance.normalization
+result.rmsd4 <- eval.RMSD(real.data = exp.data.s, pred.data = sub.data.s,sd.use = NA, 
+                      density.distance = FALSE, density.distance.adjust = FALSE, variance.normalization = FALSE,boot = T)
+head(result.rmsd4)
+plot.RMSD(result.rmsd4, method="")
 ```
 
 > For Uniqueness Evaluation
@@ -123,5 +173,9 @@ plot.RMSD(boot.result.rmsd, method="",boot = TRUE)
 result.uniq = eval.uniqueness(real.data = exp.data, pred.data = sub.data,boot = TRUE)
 result.uniq
 plot.uniqueness(result.uniq, method="",boot = TRUE)
+
+result.uniq.s = eval.uniqueness(real.data = exp.data.s, pred.data = sub.data.s,boot = TRUE)
+result.uniq.s
+plot.uniqueness(result.uniq.s, method="",boot = TRUE)
 ```
 

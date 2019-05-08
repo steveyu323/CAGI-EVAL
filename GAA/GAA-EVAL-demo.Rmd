@@ -1,29 +1,29 @@
 ---
-title: "GAA-EVAL.R"
+title: "GAA EVAL.R"
 author: "Changhua Yu"
 date: "4/2/2019"
 output: html_document
 ---
 # A demo for GAA Submission evaluation package
-```{r}
-source("GAA-EVAL.R")
+```{r, echo=T, results='hide',message=FALSE}
+source("../GAA-EVAL.R")
 ```
 
 ## Read in the Experimental data provided by CAGI
-```{r}
+```{r, echo=T, results='hide',message=FALSE}
 exp.data <- read.RealData(file = "exp_data.csv", sep = ",",
                              col.id = 2, col.value = 5, col.sd = 6)
 ```
 
 ## Read in the submission folders
-```{r}
+```{r, echo=T, results='hide',message=FALSE}
 sub.data <- read.Submission.Folder(folder.name = "prediction/",col.id = 1,
                                       col.value = 2, col.sd = 3, real.data = exp.data)
 ```
 
 ## ScatterPlot inspection
 ```{r}
-#plot_all_scatter(real.data = exp.data, pred.data = sub.data, z.transform = TRUE)
+plot_all_scatter(real.data = exp.data, pred.data = sub.data, z.transform = TRUE)
 ```
 
 ## Correlation-based Evaluation
@@ -39,6 +39,16 @@ plot.Correlation(result.cor.pearson, "Pearson")
 ## RMSD-based Evaluation
 ```{r}
 result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = FALSE, density.distance.adjust = FALSE, variance.normalization = FALSE)
+head(result.rmsd)
+plot.RMSD(result.rmsd, method="")
+
+result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = FALSE, density.distance.adjust = FALSE, variance.normalization = TRUE)
+head(result.rmsd)
+plot.RMSD(result.rmsd, method="")
+
+result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
                       density.distance = TRUE, density.distance.adjust = FALSE, variance.normalization = TRUE)
 head(result.rmsd)
 plot.RMSD(result.rmsd, method="")
@@ -48,15 +58,19 @@ result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA,
                       density.distance = TRUE, density.distance.adjust = FALSE, variance.normalization = FALSE)
 head(result.rmsd)
 plot.RMSD(result.rmsd, method="")
+
+result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = TRUE, density.distance.adjust = TRUE, variance.normalization = TRUE)
+head(result.rmsd)
+plot.RMSD(result.rmsd, method="")
 ```
 
 
 ## Cut-off-based Evaluation
 ```{r}
-result.auc.0.9 <- eval.AUC(real.data =exp.data, pred.data = sub.data, 
-                           threshold = 0.9)
-head(result.auc.0.9)
-plot.AUC(real.data =exp.data, pred.data = sub.data, threshold = 0.9)
+result.auc.0.6 <- eval.AUC(real.data =exp.data, pred.data = sub.data, 
+                           threshold = 0.6)
+plot.AUC(result.auc.0.6)
 ```
 
 ## Between-method Evaluation
@@ -113,6 +127,21 @@ boot.result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use 
                       density.distance = TRUE, density.distance.adjust = TRUE, variance.normalization = TRUE,boot = TRUE)
 head(boot.result.rmsd)
 plot.RMSD(boot.result.rmsd, method="",boot = TRUE)
+
+boot.result.rmsd2 <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = FALSE, density.distance.adjust = FALSE, variance.normalization = TRUE,boot = TRUE)
+head(boot.result.rmsd2)
+plot.RMSD(boot.result.rmsd2, method="",boot = TRUE)
+
+boot.result.rmsd3 <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = TRUE, density.distance.adjust = TRUE, variance.normalization = FALSE,boot = TRUE)
+head(boot.result.rmsd3)
+plot.RMSD(boot.result.rmsd3, method="",boot = TRUE)
+
+boot.result.rmsd4 <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = FALSE, density.distance.adjust = FALSE, variance.normalization = FALSE,boot = TRUE)
+head(boot.result.rmsd4)
+plot.RMSD(boot.result.rmsd4, method="",boot = TRUE)
 ```
 
 > For Uniqueness Evaluation

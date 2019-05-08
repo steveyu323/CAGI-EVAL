@@ -1,23 +1,23 @@
 ---
-title: "GAA-EVAL.R"
+title: "CALM1 EVAL.R"
 author: "Changhua Yu"
 date: "4/2/2019"
 output: html_document
 ---
-# A demo for GAA Submission evaluation package
-```{r}
-source("GAA-EVAL.R")
+# A demo for CALM1 Submission evaluation package
+```{r echo=T, results='hide'}
+source("../GAA-EVAL.R")
 ```
 
 ## Read in the Experimental data provided by CAGI
-```{r}
+```{r echo=T, results='hide'}
 exp.data <- read.RealData(file = "exp_data.tsv", sep = "\t",
                              col.id = 1, col.value = 2, col.sd = 3)
 head(exp.data$value)
 ```
 
 ## Read in the submission folders
-```{r}
+```{r echo=T, results='hide'}
 sub.data <- read.Submission.Folder(folder.name = "prediction/",col.id = 1,
                                       col.value = 2, col.sd = 3, real.data = exp.data)
 sub.data = addGroup(sub.data,c(1,1,2,2,3,4,4))
