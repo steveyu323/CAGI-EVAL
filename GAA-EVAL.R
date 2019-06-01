@@ -905,22 +905,32 @@ eval.uniqueness = function(real.data,pred.data,boot = FALSE, top = NA) {
 #' @name bootstrap.Helper
 #' @param real.data The real data object being parse in from experimental value
 #' @param pred.data The real data object being parse in from submission folder
-bootstrap.Helper = function(real.data,pred.data,rep.time) {
-    # real.data <- read.RealData(file = "exp_data.csv", sep = ",",
-    #                            col.id = 2, col.value = 5, col.sd = 6)
-    # pred.data <- read.Submission.Folder(folder.name = "prediction/",col.id = 1,
-    #                                     col.value = 2, col.sd = 3, real.data = exp.data)
-    # rep.time = 5
-    ind = lapply(1:rep.time,function(x) sample(1:length(real.data$value), length(real.data$value), replace=TRUE))
-    real.value.rep = lapply(1:rep.time,function(x) real.data$value[ind[[x]]])
-    real.sd.rep = lapply(1:rep.time,function(x) real.data$sd[ind[[x]]])
+#' @param var.method randomly drawn from a Gaussian distribution defined by the reported growth score and the standard error
+bootstrap.Helper = function(real.data,pred.data,rep.time,var.method = F) {
+    real.data <- read.RealData(file = "exp_data.csv", sep = ",",
+                               col.id = 2, col.value = 5, col.sd = 6)
+    pred.data <- read.Submission.Folder(folder.name = "prediction/",col.id = 1,
+                                        col.value = 2, col.sd = 3, real.data = real.data)
+    rep.time = 5
     
-    pred.value.rep = lapply(1:rep.time,function(x) pred.data$value[ind[[x]],])
-    pred.sd.rep = lapply(1:rep.time,function(x) pred.data$sd[ind[[x]],])
+    if (var.method) {
+      # 1. make sure only with row that have a non-NA value and a non-NA sd
+      # 2. get rep.time number of the same value based on Gaussian distribution
+      # 3. make rep.time number of real value
+      # 4. append the pred value to result
+    } else {
+      ind = lapply(1:rep.time,function(x) sample(1:length(real.data$value), length(real.data$value), replace=TRUE))
+      real.value.rep = lapply(1:rep.time,function(x) real.data$value[ind[[x]]])
+      real.sd.rep = lapply(1:rep.time,function(x) real.data$sd[ind[[x]]])
+      
+      pred.value.rep = lapply(1:rep.time,function(x) pred.data$value[ind[[x]],])
+      pred.sd.rep = lapply(1:rep.time,function(x) pred.data$sd[ind[[x]],])
+      
+      real.rep = lapply(1:rep.time,function(x) list(value = real.value.rep[[x]],sd = real.sd.rep[[x]]))
+      pred.rep = lapply(1:rep.time,function(x) list(value = pred.value.rep[[x]],sd = pred.sd.rep[[x]],group = pred.data$group))
+      result = list(real.rep = real.rep,pred.rep = pred.rep)
+    }
     
-    real.rep = lapply(1:rep.time,function(x) list(value = real.value.rep[[x]],sd = real.sd.rep[[x]]))
-    pred.rep = lapply(1:rep.time,function(x) list(value = pred.value.rep[[x]],sd = pred.sd.rep[[x]],group = pred.data$group))
-    result = list(real.rep = real.rep,pred.rep = pred.rep)
     return(result)
 }
 
@@ -1142,15 +1152,15 @@ plot.uniqueness <- function(result.uniq, method="",boot = FALSE) {
 eval.correctness <- function(real.data, pred.data, threshold = 0.5, sd.use = NA, lower.positive=F,z.transform = F,protname){
   ##########################################
   # for debugging input
-  real.data <- read.RealData(file = "exp_data.csv", sep = ",",
-                             col.id = 2, col.value = 5, col.sd = 6)
-  pred.data <- read.Submission.Folder(folder.name = "prediction/",col.id = 1,
-                                      col.value = 2, col.sd = 3, real.data = real.data)
-  threshold = 0.5
-  sd.use = NA
-  lower.positive=F
-  protname = "5nn3"
-  z.transform = T
+  # real.data <- read.RealData(file = "exp_data.csv", sep = ",",
+  #                            col.id = 2, col.value = 5, col.sd = 6)
+  # pred.data <- read.Submission.Folder(folder.name = "prediction/",col.id = 1,
+  #                                     col.value = 2, col.sd = 3, real.data = real.data)
+  # threshold = 0.5
+  # sd.use = NA
+  # lower.positive=F
+  # protname = "5nn3"
+  # z.transform = T
   ###########################################
   # remove rows with NA values
   filter <- (!is.na(real.data$value)) & (!sapply(1:nrow(pred.data$value),function(x) any(is.na(pred.data$value[x,]))))
