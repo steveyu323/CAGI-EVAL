@@ -10,6 +10,7 @@ library(ggrepel)
 library(rlist)
 library(gmodels)
 library(parallel)
+library(stringr)
 ######### This function needs to be more flexible, e.g., col 2 can be non-numberic 
 ##################################################################################
 #Validation
@@ -1129,6 +1130,61 @@ plot.uniqueness <- function(result.uniq, method="",boot = FALSE) {
     }
     return(p)
 }
+
+
+
+# YuC: 190530 A function that extract the protein residue number and proportion of user-defined "correctness"
+#' @decription use similar method as ROC function and get the proportion of correct prediction
+#' @name Eval.Correctness
+#' @param similar to ROC ones 
+#' @param prot_name: The corresponding pdb entry for pymol
+#' @return A .csv file with proper name of the pdb file of the protein
+eval.correctness <- function(real.data, pred.data, threshold = 0.5, sd.use = NA, lower.positive=F,z.transform = F,protname){
+  ##########################################
+  # for debugging input
+  real.data <- read.RealData(file = "exp_data.csv", sep = ",",
+                             col.id = 2, col.value = 5, col.sd = 6)
+  pred.data <- read.Submission.Folder(folder.name = "prediction/",col.id = 1,
+                                      col.value = 2, col.sd = 3, real.data = real.data)
+  threshold = 0.5
+  sd.use = NA
+  lower.positive=F
+  protname = "5nn3"
+  z.transform = T
+  ###########################################
+  # remove rows with NA values
+  filter <- (!is.na(real.data$value)) & (!sapply(1:nrow(pred.data$value),function(x) any(is.na(pred.data$value[x,]))))
+  real.data$value <- real.data$value[filter]
+  pred.data$value <- pred.data$value[filter, ]
+  # sd 
+  sd.enable <- is.numeric(sd.use) & length(real.data$sd) >1
+  if(sd.enable){
+    keep <- (real.data$sd < sd.use) & (!is.na(real.data$sd))
+    real.data$value <- real.data$value[keep]
+    pred.data$value <- pred.data$value[keep, ]
+  }
+  n <- length(real.data$value)
+  if (z.transform) {
+    z_dat = z.normalization(real.data,pred.data)
+    real.data$value = z_dat$real.data
+    pred.data$value = z_dat$pred.data
+  }
+  realClass <- AUC.build.class(real.data$value,lower.positive,threshold)
+  predClass <- sapply(colnames(pred.data$value),
+                        function(x) AUC.build.class(pred.data$value[,x],lower.positive,threshold))
+  correctness <- sapply(names(realClass),
+                      function(x) sum(predClass[x,] == realClass[x])/ncol(predClass))
+  ret = data.frame(res = as.numeric(str_extract(names(correctness), "[0-9]+")),correctness = correctness)
+  ret = ret %>% group_by(res) %>% summarise(avg.correctness = mean(correctness))
+  tabl.name = paste0(protname,".csv")
+  ret$res = as.character(ret$res)
+  write.csv(ret,file = tabl.name)
+  return(ret)
+}
+
+
+
+
 
 
 
