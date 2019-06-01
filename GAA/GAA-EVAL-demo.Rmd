@@ -117,6 +117,14 @@ boot.result.cor.pearson <- eval.Correlation(real.data = exp.data, pred.data = su
 head(boot.result.cor.pearson)
 # 2. Plot Correlation
 plot.Correlation(boot.result.cor.pearson, "Pearson",boot = TRUE)
+
+
+
+bootvar.result.cor.pearson <- eval.Correlation(real.data = exp.data, pred.data = sub.data,
+                                       method = "pearson", sd.use = 0.3,z.transform = TRUE,boot = T,boot.var = T )
+head(bootvar.result.cor.pearson)
+# 2. Plot Correlation
+plot.Correlation(bootvar.result.cor.pearson, "Pearson",boot = TRUE)
 ```
 
 
@@ -150,5 +158,9 @@ plot.RMSD(boot.result.rmsd4, method="",boot = TRUE)
 result.uniq = eval.uniqueness(real.data = exp.data, pred.data = sub.data,boot = TRUE)
 result.uniq
 plot.uniqueness(result.uniq, method="",boot = TRUE)
+
+result.bootvar.uniq = eval.uniqueness(real.data = exp.data, pred.data = sub.data,boot = TRUE,boot.var = T)
+result.bootvar.uniq$uniqueness
+plot.uniqueness(result.bootvar.uniq, method="",boot = TRUE)
 ```
 
