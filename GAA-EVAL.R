@@ -910,14 +910,21 @@ bootstrap.Helper = function(real.data,pred.data,rep.time,var.method = F) {
     real.data <- read.RealData(file = "exp_data.csv", sep = ",",
                                col.id = 2, col.value = 5, col.sd = 6)
     pred.data <- read.Submission.Folder(folder.name = "prediction/",col.id = 1,
-                                        col.value = 2, col.sd = 3, real.data = real.data)
+                                      col.value = 2, col.sd = 3, real.data = real.data)
     rep.time = 5
-    
     if (var.method) {
       # 1. make sure only with row that have a non-NA value and a non-NA sd
       # 2. get rep.time number of the same value based on Gaussian distribution
       # 3. make rep.time number of real value
       # 4. append the pred value to result
+      naming = function(name,vec) {
+        names(vec) = name
+        return (vec)
+      }
+      real.norm = lapply(1:length(real.data$value),function(x) rnorm(rep.time, real.data$value[x], real.data$sd[x]))
+      real.norm = as.data.frame(do.call(rbind, real.norm))
+      real.rep = lapply(1:rep.time,function(x) list(value = naming(names(real.data$value),real.norm[[x]]),sd = real.data$sd))
+      pred.rep = lapply(1:rep.time,function(x) list(value = pred.data$value,sd = pred.data$sd,group = pred.data$group))
     } else {
       ind = lapply(1:rep.time,function(x) sample(1:length(real.data$value), length(real.data$value), replace=TRUE))
       real.value.rep = lapply(1:rep.time,function(x) real.data$value[ind[[x]]])
@@ -928,9 +935,9 @@ bootstrap.Helper = function(real.data,pred.data,rep.time,var.method = F) {
       
       real.rep = lapply(1:rep.time,function(x) list(value = real.value.rep[[x]],sd = real.sd.rep[[x]]))
       pred.rep = lapply(1:rep.time,function(x) list(value = pred.value.rep[[x]],sd = pred.sd.rep[[x]],group = pred.data$group))
-      result = list(real.rep = real.rep,pred.rep = pred.rep)
+      
     }
-    
+    result = list(real.rep = real.rep,pred.rep = pred.rep)
     return(result)
 }
 
@@ -1270,3 +1277,4 @@ ExperimentalVsPredicted <- function(path.prediction, real.data){
     dev.off()
 }
 ############################################################
+
