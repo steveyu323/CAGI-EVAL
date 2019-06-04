@@ -197,7 +197,8 @@ Validate.Submission.Folder <- function(folder.name,
   #######################
   
   #read top folder
-  group.path <- paste(folder.name, list.files(folder.name), sep = "/")
+  group.path <-
+    paste(folder.name, list.files(folder.name), sep = "/")
   #obtain files in each sub-folder of the top folder
   submission.files <-
     unname(unlist(sapply(group.path, function(x)
@@ -270,7 +271,7 @@ read.Prediction.File <-
     # col.value = 3
     # with.sd = 1
     # col.sd = 4
-    print(file.name)
+    # print(file.name)
     data <-
       read.table(file.name,
                  sep = sep,
@@ -301,8 +302,8 @@ read.Prediction.File <-
 
 # reorder the prediction submision value and sd column
 validate.Submission.data <- function(real.data, pred.data) {
-  pred.data$value = pred.data$value[names(real.data$value), ]
-  pred.data$sd = pred.data$sd[names(real.data$sd), ]
+  pred.data$value = pred.data$value[names(real.data$value),]
+  pred.data$sd = pred.data$sd[names(real.data$sd),]
   return(pred.data)
 }
 
@@ -367,7 +368,8 @@ read.Submission.Folder <-
     #################################
     
     #read top folder
-    group.path <- paste(folder.name, list.files(folder.name), sep = "/")
+    group.path <-
+      paste(folder.name, list.files(folder.name), sep = "/")
     #obtain files in each sub-folder of the top folder
     file.path <-
       unname(unlist(sapply(group.path, function(x)
@@ -530,7 +532,9 @@ eval.Correlation <-
     if (sd.enable) {
       keep <- (real.data$sd < sd.use) & (!is.na(real.data$sd))
       real.data$value <- real.data$value[keep]
-      pred.data$value <- pred.data$value[keep,]
+      real.data$sd <- real.data$sd[keep]
+      pred.data$value <- pred.data$value[keep, ]
+      pred.data$sd <- pred.data$sd[keep, ]
     }
     n <- length(real.data$value)
     
@@ -589,15 +593,15 @@ eval.Correlation <-
         cor.rep[[x]][, 2]))
       row.names(coefficient.rep) = row.names(cor.rep[[1]])
       ci_low = list.rbind(lapply(1:nrow(coefficient.rep), function(x)
-        quantile(coefficient.rep[x, ], probs = 0.05)))
+        quantile(coefficient.rep[x,], probs = 0.05)))
       ci_high = list.rbind(lapply(1:nrow(coefficient.rep), function(x)
-        quantile(coefficient.rep[x, ], probs = 0.95)))
+        quantile(coefficient.rep[x,], probs = 0.95)))
       sd = list.rbind(lapply(1:nrow(coefficient.rep), function(x)
-        sd(coefficient.rep[x, ])))
+        sd(coefficient.rep[x,])))
       avg = list.rbind(lapply(1:nrow(coefficient.rep), function(x)
-        mean(coefficient.rep[x, ])))
+        mean(coefficient.rep[x,])))
       p.median = list.rbind(lapply(1:nrow(coefficient.rep), function(x)
-        median(pval.rep[x, ])))
+        median(pval.rep[x,])))
       
       cor.result = cbind(avg, ci_low, ci_high, sd, p.median)
       row.names(cor.result) = row.names(cor.rep[[1]])
@@ -644,6 +648,7 @@ eval.RMSD <- function(real.data,
                       density.distance.adjust = FALSE,
                       variance.normalization = TRUE,
                       boot = FALSE,
+                      boot.var = F,
                       ...) {
   ######input###################################################
   # real.data <- read.RealData(file = "exp_data.csv", sep = ",",
@@ -663,7 +668,7 @@ eval.RMSD <- function(real.data,
     keep <- (real.data$sd < sd.use) & (!is.na(real.data$sd))
     real.data$value <- real.data$value[keep]
     real.data$sd <- real.data$sd[keep]
-    pred.data$value <- pred.data$value[keep,]
+    pred.data$value <- pred.data$value[keep, ]
   }
   if (density.distance) {
     if (length(real.data$sd) == 1) {
@@ -731,13 +736,13 @@ eval.RMSD <- function(real.data,
     row.names(rmsd.rep) = row.names(rmsd.rep[[1]])
     
     ci_low = list.rbind(lapply(1:nrow(rmsd.rep), function(x)
-      quantile(rmsd.rep[x, ], probs = 0.05)))
+      quantile(rmsd.rep[x,], probs = 0.05)))
     ci_high = list.rbind(lapply(1:nrow(rmsd.rep), function(x)
-      quantile(rmsd.rep[x, ], probs = 0.95)))
+      quantile(rmsd.rep[x,], probs = 0.95)))
     sd = list.rbind(lapply(1:nrow(rmsd.rep), function(x)
-      sd(rmsd.rep[x, ])))
+      sd(rmsd.rep[x,])))
     avg = list.rbind(lapply(1:nrow(rmsd.rep), function(x)
-      mean(rmsd.rep[x, ])))
+      mean(rmsd.rep[x,])))
     
     rmsd.result = cbind(avg, ci_low, ci_high, sd)
     row.names(rmsd.result) = colnames(pred.data$value)
@@ -773,13 +778,13 @@ eval.AUC <-
     # remove rows with NA values
     filter <- !is.na(real.data$value)
     real.data$value <- real.data$value[filter]
-    pred.data$value <- pred.data$value[filter,]
+    pred.data$value <- pred.data$value[filter, ]
     # sd
     sd.enable <- is.numeric(sd.use) & length(real.data$sd) > 1
     if (sd.enable) {
       keep <- (real.data$sd < sd.use) & (!is.na(real.data$sd))
       real.data$value <- real.data$value[keep]
-      pred.data$value <- pred.data$value[keep,]
+      pred.data$value <- pred.data$value[keep, ]
     }
     n <- length(real.data$value)
     if (z.transform) {
@@ -813,7 +818,7 @@ eval.AUC <-
       accuracy = (TP + TN) / (TP + FP + FN + TN)
       precision = TP / (TP + FP)
       f1_score = 2 * (sens * precision) / (sens + precision)
-      print(file.name)
+      # print(file.name)
       pred <<-
         prediction(predictions = pred.data$value[, file.name], labels = realClass)
       perf <<- performance(pred, "tpr", "fpr")
@@ -888,7 +893,7 @@ plot.AUC.helper = function(file.name, results) {
   # get the evaluated statistics
   rocobj <-
     roc(results$realClass, results$pred.data$value[, file.name])
-  result.label = paste(colnames(results$results) , results$results[file.name, ], sep = ":")
+  result.label = paste(colnames(results$results) , results$results[file.name,], sep = ":")
   g <- ggroc(rocobj, legacy.axes = TRUE)
   g = g + theme_minimal(base_size = 5) + ggtitle(title) +
     geom_segment(aes(
@@ -962,7 +967,7 @@ Density.Distance <-  function(real.data,
   
   real.data$value <- real.data$value[keep]
   real.data$sd <- real.data$sd[keep]
-  pred.data$value <- pred.data$value[keep, ]
+  pred.data$value <- pred.data$value[keep,]
   
   averDis <- function(val, mu, sigma) {
     return(val * (2 * pnorm(val, mean = mu, sd = sigma) - 1) +
@@ -1021,7 +1026,7 @@ eval.Correlation.Between <-
     if (sd.enable) {
       keep <- (real.data$sd < sd.use) & (!is.na(real.data$sd))
       real.data$value <- real.data$value[keep]
-      pred.data$value <- pred.data$value[keep,]
+      pred.data$value <- pred.data$value[keep, ]
     }
     if (grouped) {
       pred.data = groupFilter(real.data, pred.data)
@@ -1057,7 +1062,7 @@ eval.Partial.Correlation <-
     if (sd.enable) {
       keep <- (real.data$sd < sd.use) & (!is.na(real.data$sd))
       real.data$value <- real.data$value[keep]
-      pred.data$value <- pred.data$value[keep,]
+      pred.data$value <- pred.data$value[keep, ]
     }
     n <- length(real.data$value)
     mat <- cbind(real.data$value, pred.data$value)
@@ -1113,7 +1118,7 @@ eval.uniqueness = function(real.data,
                               colnames(grouped.pred.data$value))
   uniqueness = r.square.tot - r.square.excl
   result = data.frame(uniqueness)
-  row.names(result) = grouped.pred.data$group
+  row.names(result) = colnames(grouped.pred.data$value)
   
   if (boot) {
     rep.time = 500
@@ -1126,13 +1131,13 @@ eval.uniqueness = function(real.data,
     unique.rep = list.cbind(lapply(1:rep.time, function(x)
       unique.rep[[x]][, 1]))
     ci_low = list.rbind(lapply(1:nrow(unique.rep), function(x)
-      quantile(unique.rep[x, ], probs = 0.05)))
+      quantile(unique.rep[x,], probs = 0.05)))
     ci_high = list.rbind(lapply(1:nrow(unique.rep), function(x)
-      quantile(unique.rep[x, ], probs = 0.95)))
+      quantile(unique.rep[x,], probs = 0.95)))
     sd = list.rbind(lapply(1:nrow(unique.rep), function(x)
-      sd(unique.rep[x, ])))
+      sd(unique.rep[x,])))
     avg = list.rbind(lapply(1:nrow(unique.rep), function(x)
-      mean(unique.rep[x, ])))
+      mean(unique.rep[x,])))
     result = cbind(avg, ci_low, ci_high, sd)
     row.names(result) = rname
     colnames(result) = c("uniqueness", "low_ci", "high_ci", "sd")
@@ -1191,9 +1196,9 @@ bootstrap.Helper = function(real.data,
       real.data$sd[ind[[x]]])
     
     pred.value.rep = lapply(1:rep.time, function(x)
-      pred.data$value[ind[[x]], ])
+      pred.data$value[ind[[x]],])
     pred.sd.rep = lapply(1:rep.time, function(x)
-      pred.data$sd[ind[[x]], ])
+      pred.data$sd[ind[[x]],])
     
     real.rep = lapply(1:rep.time, function(x)
       list(value = real.value.rep[[x]], sd = real.sd.rep[[x]]))
@@ -1221,7 +1226,8 @@ plot.Correlation <-
     mydata <-
       data.frame(submissions = row.names(result.cor),
                  Correlation = result.cor[, 1])
-    plot <- ggplot(data = mydata, aes(x = submissions, y = Correlation)) +
+    plot <-
+      ggplot(data = mydata, aes(x = submissions, y = Correlation)) +
       geom_bar(stat = "identity") + theme_classic() +
       theme(axis.text.x = element_text(
         angle = 90,
@@ -1263,7 +1269,10 @@ plot.Correlation <-
       } else {
         plot2 <-
           plot2 + geom_errorbar(
-            aes(ymin = result.cor$avg - result.cor$avg$sd, ymax = result.cor$avg + result.cor$avg$sd),
+            aes(
+              ymin = result.cor$avg - result.cor$avg$sd,
+              ymax = result.cor$avg + result.cor$avg$sd
+            ),
             width = .2,
             position = position_dodge(.9)
           )
@@ -1318,42 +1327,43 @@ plot.Correlation.Between <-
   }
 
 #---------This function will plot the partial correlation given by the funciton "eval.Partial.Correlation" above!, and return plot object ------------
-plot.Partial.Correlation <- function(result.cor, method, pval = TRUE) {
-  mydata <-
-    data.frame(method = labels(result.cor)[[1]], Correlation = result.cor[[1]])
-  head(mydata)
-  plot <- ggplot(data = mydata, aes(x = method, y = Correlation)) +
-    geom_bar(stat = "identity") + theme_classic() +
-    theme(axis.text.x = element_text(
-      angle = 90,
-      hjust = 1,
-      vjust = 0.5
-    ))
-  #If pval argument is given, we use geom_text (http://ggplot2.tidyverse.org/reference/geom_text.html) to plot appropriate number of stars
-  #if p smaller than 0.05 => *, p < 0.01 => **, p <0.001 => ***
-  stars1 <- c()
-  if (pval) {
-    for (i in 1:nrow(result.cor)) {
-      if (result.cor[[2]][i] < 0.001) {
-        stars1 <- c(stars1, "***")
-      } else if (result.cor[[2]][i] < 0.01) {
-        stars1 <- c(stars1, "**")
-      } else if (result.cor[[2]][i] < 0.05) {
-        stars1 <- c(stars1, "*")
-      } else {
-        stars1 <- c(stars1, " ")
+plot.Partial.Correlation <-
+  function(result.cor, method, pval = TRUE) {
+    mydata <-
+      data.frame(method = labels(result.cor)[[1]], Correlation = result.cor[[1]])
+    head(mydata)
+    plot <- ggplot(data = mydata, aes(x = method, y = Correlation)) +
+      geom_bar(stat = "identity") + theme_classic() +
+      theme(axis.text.x = element_text(
+        angle = 90,
+        hjust = 1,
+        vjust = 0.5
+      ))
+    #If pval argument is given, we use geom_text (http://ggplot2.tidyverse.org/reference/geom_text.html) to plot appropriate number of stars
+    #if p smaller than 0.05 => *, p < 0.01 => **, p <0.001 => ***
+    stars1 <- c()
+    if (pval) {
+      for (i in 1:nrow(result.cor)) {
+        if (result.cor[[2]][i] < 0.001) {
+          stars1 <- c(stars1, "***")
+        } else if (result.cor[[2]][i] < 0.01) {
+          stars1 <- c(stars1, "**")
+        } else if (result.cor[[2]][i] < 0.05) {
+          stars1 <- c(stars1, "*")
+        } else {
+          stars1 <- c(stars1, " ")
+        }
       }
+      plot2 <-
+        plot + geom_text(aes(label = stars1),
+                         vjust = -0.5,
+                         position = position_dodge(0.9)) +
+        ggtitle(paste("Plot of", method, "Partial Correlation vs. Predictor", sep =
+                        " ")) + theme(plot.title = element_text(hjust = 0.5))
+      #ggsave(filename=paste("plots/", method, "PartialCorrelation",".pdf"), plot=plot2, width = 7, height = 7, units = "in",dpi = 300)
+      return(plot2)
     }
-    plot2 <-
-      plot + geom_text(aes(label = stars1),
-                       vjust = -0.5,
-                       position = position_dodge(0.9)) +
-      ggtitle(paste("Plot of", method, "Partial Correlation vs. Predictor", sep =
-                      " ")) + theme(plot.title = element_text(hjust = 0.5))
-    #ggsave(filename=paste("plots/", method, "PartialCorrelation",".pdf"), plot=plot2, width = 7, height = 7, units = "in",dpi = 300)
-    return(plot2)
   }
-}
 
 
 # YuC: A new plot function for the Prediction VS Experimental scatterplot, axies can be unified by the largest x and y value
@@ -1485,7 +1495,6 @@ plot.RMSD <- function(result.rmsd,
     )) +
     ggtitle(paste("Plot of", method, "RMSD vs. Predictor", sep = " ")) + theme(plot.title = element_text(hjust = 0.5))
   if (boot) {
-    v
     if (use.ci) {
       p <-
         p + geom_errorbar(
@@ -1529,9 +1538,10 @@ plot.uniqueness <-
                       " ")) + theme(plot.title = element_text(hjust = 0.5))
     if (boot) {
       if (use.ci) {
+        # print(length(result.uniq$low_ci))
         p <-
           p + geom_errorbar(
-            aes(ymin = result.rmsd$low_ci, ymax = result.rmsd$high_ci),
+            aes(ymin = result.uniq$low_ci, ymax = result.uniq$high_ci),
             width = .2,
             position = position_dodge(.9)
           )
@@ -1581,15 +1591,15 @@ eval.correctness <-
     filter <-
       (!is.na(real.data$value)) &
       (!sapply(1:nrow(pred.data$value), function(x)
-        any(is.na(pred.data$value[x, ]))))
+        any(is.na(pred.data$value[x,]))))
     real.data$value <- real.data$value[filter]
-    pred.data$value <- pred.data$value[filter,]
+    pred.data$value <- pred.data$value[filter, ]
     # sd
     sd.enable <- is.numeric(sd.use) & length(real.data$sd) > 1
     if (sd.enable) {
       keep <- (real.data$sd < sd.use) & (!is.na(real.data$sd))
       real.data$value <- real.data$value[keep]
-      pred.data$value <- pred.data$value[keep,]
+      pred.data$value <- pred.data$value[keep, ]
     }
     n <- length(real.data$value)
     if (z.transform) {
@@ -1604,7 +1614,7 @@ eval.correctness <-
                           AUC.build.class(pred.data$value[, x], lower.positive, threshold))
     correctness <- sapply(names(realClass),
                           function(x)
-                            sum(predClass[x, ] == realClass[x]) / ncol(predClass))
+                            sum(predClass[x,] == realClass[x]) / ncol(predClass))
     ret = data.frame(res = as.numeric(str_extract(names(correctness), "[0-9]+")), correctness = correctness)
     ret = ret %>% group_by(res) %>% summarise(avg.correctness = mean(correctness))
     tabl.name = paste0(protname, ".csv")
