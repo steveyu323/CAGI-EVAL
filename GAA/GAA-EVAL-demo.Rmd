@@ -58,7 +58,9 @@ plot.Correlation(result.cor.pearson, "Pearson")
 boot.result.cor.pearson <- eval.Correlation(real.data = exp.data, pred.data = sub.data,
                                        method = "pearson", sd.use = 0.3,z.transform = TRUE,boot = T)
 # For Correlation-based Evaluation, provide mean, CI, and median pval
-head(boot.result.cor.pearson)
+head(boot.result.cor.pearson$summary)
+head(boot.result.cor.pearson$rawdat)
+boot.result.cor.pearson
 # 2. Plot Correlation
 plot.Correlation(boot.result.cor.pearson, "Pearson",boot = TRUE)
 ```
@@ -156,6 +158,8 @@ plot.uniqueness(result.bootvar.uniq, method="",boot = TRUE,use.ci = F)
 ```{r}
 res = eval.correctness(real.data = exp.data, pred.data = sub.data,threshold = 0.5,sd.use = NA,lower.positive = F,z.transform = F,"5nn3")
 head(res)
+
+TukeyHSD()
 ```
 > Then load cagi_plot.py module into pymol and call plot_cagi function
   `PlotCorrectness(prot_name,path)` The function output a .pse file for the protein
@@ -163,4 +167,28 @@ head(res)
   Green: correctness towards 0%
   ![5nn3 GAA pdb entry)](./5nn3.png)
 
-
+```{r}
+chocolate = data.frame(
+  Sabor =
+  c(5, 7, 3,
+    4, 2, 6,
+    5, 3, 6,
+    5, 6, 0,
+    7, 4, 0,
+    7, 7, 0,
+    6, 6, 0,
+    4, 6, 1,
+    6, 4, 0,
+    7, 7, 0,
+    2, 4, 0,
+    5, 7, 4,
+    7, 5, 0,
+    4, 5, 0,
+    6, 6, 3
+  ),
+Tipo = factor(rep(c("A", "B", "C"), 15)),
+Provador = factor(rep(1:15, rep(3, 15))))
+tapply(chocolate$Sabor, chocolate$Tipo, mean)
+ajuste <- lm(chocolate$Sabor ~ chocolate$Tipo + chocolate$Provador)
+anova(ajuste)
+```

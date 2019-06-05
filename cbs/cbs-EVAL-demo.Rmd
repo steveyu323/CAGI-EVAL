@@ -14,166 +14,129 @@ source("../GAA-EVAL.R")
 exp.data.10.h <- read.RealData(file = "exp_2010.csv", sep = ":",
                              col.id = 1, col.value = 2, col.sd = 3)
 exp.data.10.h
-
 exp.data.10.l <- read.RealData(file = "exp_2010.csv", sep = ":",
                              col.id = 1, col.value = 4, col.sd = 5)
 exp.data.10.l
 
-exp.data.11.h <- read.RealData(file = "exp_2011.csv", sep = ",",
-                             col.id = 1, col.value = 4, col.sd = 5,na.character = 'ND')
+exp.data.11.h <- read.RealData(file = "exp_2011.csv", sep = "\t",
+                             col.id = 1, col.value = 2, col.sd = 3,na.character = 'NA')
 exp.data.11.h
 
-exp.data.11.l <- read.RealData(file = "exp_2011.csv", sep = ",",
-                             col.id = 1, col.value = 2, col.sd = 3,na.character = 'ND')
+exp.data.11.l <- read.RealData(file = "exp_2011.csv", sep = "\t",
+                             col.id = 1, col.value = 4, col.sd = 5,na.character = 'NA')
 exp.data.11.l
 ```
 
 ## Read in the submission folders
 ```{r, echo=T, results='hide',message=FALSE}
-sub.data <- read.Submission.Folder(folder.name = "prediction/",col.id = 1,
-                                      col.value = 2, col.sd = 3, real.data = exp.data)
+sub.data.10.h <- read.Submission.Folder(folder.name = "prediction_2010/",col.id = 1,
+                                      col.value = 2, col.sd = 3, real.data = exp.data.10.h)
+
+sub.data.10.l <- read.Submission.Folder(folder.name = "prediction_2010/",col.id = 1,
+                                      col.value = 4, col.sd = 5, real.data = exp.data.10.l)
+
+sub.data.11.h <- read.Submission.Folder(folder.name = "prediction_2011/",col.id = 1,
+                                      col.value = 2, col.sd = 3, real.data = exp.data.11.h)
+sub.data.11.l <- read.Submission.Folder(folder.name = "prediction_2011/",col.id = 1,
+                                      col.value = 4, col.sd = 5, real.data = exp.data.11.l)
 ```
 
-## ScatterPlot inspection
-```{r}
-plot_all_scatter(real.data = exp.data, pred.data = sub.data, z.transform = TRUE)
-```
+## for 2010 high
+### Correlation-based Evaluation with bootstrap
+  method = "pearson"
+  sd.use = NA: no filter on the experimental sd value
+  z.transformation does not have effect to pearson correlation
 
-## Correlation-based Evaluation
 ```{r}
 # 1. Render coefficient value
-result.cor.pearson <- eval.Correlation(real.data = exp.data, pred.data = sub.data,
-                                       method = "pearson", sd.use = 0.3,z.transform = TRUE)
-head(result.cor.pearson)
+boot.result.cor.pearson.10.h <- eval.Correlation(real.data = exp.data.10.h, pred.data = sub.data.10.h,
+                                       method = "pearson", sd.use = NA,z.transform = F,boot = T)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+head(boot.result.cor.pearson.10.h$summary)
+head(boot.result.cor.pearson.10.h$rawdat)
 # 2. Plot Correlation
-plot.Correlation(result.cor.pearson, "Pearson")
+plot.Correlation(boot.result.cor.pearson.10.h$summary, "Pearson",boot = TRUE)
 ```
 
-## RMSD-based Evaluation
+> Bootstrap using distribution modelling 
+  boot = T, boot.var = T
+
 ```{r}
-result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
-                      density.distance = FALSE, density.distance.adjust = FALSE, variance.normalization = FALSE)
-head(result.rmsd)
-plot.RMSD(result.rmsd, method="")
-
-result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
-                      density.distance = FALSE, density.distance.adjust = FALSE, variance.normalization = TRUE)
-head(result.rmsd)
-plot.RMSD(result.rmsd, method="")
-
-result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
-                      density.distance = TRUE, density.distance.adjust = FALSE, variance.normalization = TRUE)
-head(result.rmsd)
-plot.RMSD(result.rmsd, method="")
-
-# with variance.normalization
-result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
-                      density.distance = TRUE, density.distance.adjust = FALSE, variance.normalization = FALSE)
-head(result.rmsd)
-plot.RMSD(result.rmsd, method="")
-
-result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
-                      density.distance = TRUE, density.distance.adjust = TRUE, variance.normalization = TRUE)
-head(result.rmsd)
-plot.RMSD(result.rmsd, method="")
+bootvar.result.cor.pearson.10.h <- eval.Correlation(real.data = exp.data.10.h, pred.data = sub.data.10.h,
+                                       method = "pearson", sd.use = NA,z.transform = F,boot = T,boot.var = T)
+head(bootvar.result.cor.pearson.10.h$summary)
+plot.Correlation(bootvar.result.cor.pearson.10.h$summary, "Pearson",boot = TRUE)
 ```
 
+  method = "kendall"
+  sd.use = NA: no filter on the experimental sd value
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.kendall.10.h <- eval.Correlation(real.data = exp.data.10.h, pred.data = sub.data.10.h,
+                                       method = "kendall", sd.use = NA,z.transform = F,boot = T)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+head(boot.result.cor.kendall.10.h$summary)
+head(boot.result.cor.kendall.10.h$rawdat)
+# 2. Plot Correlation
+plot.Correlation(boot.result.cor.kendall.10.h$summary, "kendall",boot = TRUE)
+```
+
+  method = "spearman"
+  sd.use = NA: no filter on the experimental sd value
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.spearman.10.h <- eval.Correlation(real.data = exp.data.10.h, pred.data = sub.data.10.h,
+                                       method = "spearman", sd.use = NA,z.transform = F,boot = T)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+head(boot.result.cor.spearman.10.h$summary)
+head(boot.result.cor.spearman.10.h$rawdat)
+# 2. Plot Correlation
+plot.Correlation(boot.result.cor.spearman.10.h$summary, "spearman",boot = TRUE)
+```
+
+## RMSD-based Evaluation 
+>   - (for demonstration, only present the bootstrapped result)
+    - variance.normalization: defined on PPT
+    - density.distance: RMSD based on distribution model of experimental value
+   
+```{r}
+# with variance.normalization + without density.distance
+boot.result.rmsd2.10.h <- eval.RMSD(real.data = exp.data.10.h, pred.data = sub.data.10.h,sd.use = NA, 
+                      density.distance = FALSE,variance.normalization = TRUE,boot = TRUE)
+head(boot.result.rmsd2.10.h)
+plot.RMSD(boot.result.rmsd2.10.h, method="",boot = TRUE)
+
+# with variance.normalization + with density.distance
+boot.result.rmsd.10.h <- eval.RMSD(real.data = exp.data.10.h, pred.data = sub.data.10.h,sd.use = NA, 
+                      density.distance = TRUE, variance.normalization = TRUE, boot = TRUE)
+head(boot.result.rmsd.10.h)
+plot.RMSD(boot.result.rmsd.10.h, method="",boot = TRUE)
+```
 
 ## Cut-off-based Evaluation
+   threshold = 0.6: The cutoff for positive/negative value
 ```{r}
-result.auc.0.6 <- eval.AUC(real.data =exp.data, pred.data = sub.data, 
-                           threshold = 0.6)
-plot.AUC(result.auc.0.6)
-```
-
-## Between-method Evaluation
-```{r}
-# for all the submission files
-result.bM.spearman <-eval.Correlation.Between(real.data = exp.data, pred.data = sub.data,
-                                              method = "spearman",sd.use = 0.5,z.transform = TRUE)
-plot.Correlation.Between(result.bM.spearman$coefficient, method="Spearman")
-
-
-# for best submission of each group
-result.bM.spearman <-eval.Correlation.Between(real.data = exp.data, pred.data = sub.data,
-                                              method = "pearson",sd.use = 0.5,z.transform = TRUE,grouped = TRUE)
-plot.Correlation.Between(result.bM.spearman$coefficient, method="pearson")
-```
-
-## Partial-Correlation Evaluation
-```{r}
-result.pCor <- eval.Partial.Correlation(real.data = exp.data, pred.data = sub.data, method = "spearman")
-plot.Correlation.Between(result.bM.spearman$coefficient, method="Spearman")
-```
-
-## PCA Plot
-```{r}
-total = cbind(real = exp.data$value,sub.data$value)
-Plot.PCA(na.omit(total), labels=F, legend=TRUE) 
+result.auc.10.h <- eval.AUC(real.data =exp.data.10.h, pred.data = sub.data.10.h, 
+                           threshold = 0)
+head(result.auc.10.h$results)
+plot.AUC.bar(result.auc.10.h$results)
 ```
 
 ## Uniqueness Evaluation
+   uniqueness as adj.r^2 difference between total linear model and linear models without certain group
+   use.ci = T : if true error bar as confidence interval; if false, error bar as standard deviation
+   
 ```{r}
-# uniqueness as adj.r^2 difference between total linear model and linear models without certain group
-result.uniq = eval.uniqueness(real.data = exp.data, pred.data = sub.data)
-result.uniq
-plot.uniqueness(result.uniq, method="")
-```
-
-## Bootstrap Analysis
-> For Correlation-based Evaluation, provide mean, CI, and median pval
-
-```{r}
-# 1. Render coefficient value
-boot.result.cor.pearson <- eval.Correlation(real.data = exp.data, pred.data = sub.data,
-                                       method = "pearson", sd.use = 0.3,z.transform = TRUE,boot = T)
-head(boot.result.cor.pearson)
-# 2. Plot Correlation
-plot.Correlation(boot.result.cor.pearson, "Pearson",boot = TRUE)
-
-
-
-bootvar.result.cor.pearson <- eval.Correlation(real.data = exp.data, pred.data = sub.data,
-                                       method = "pearson", sd.use = 0.3,z.transform = TRUE,boot = T,boot.var = T )
-head(bootvar.result.cor.pearson)
-# 2. Plot Correlation
-plot.Correlation(bootvar.result.cor.pearson, "Pearson",boot = TRUE)
-```
-
-
-> For RMSD-based Evaluation
-
-```{r}
-boot.result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
-                      density.distance = TRUE, density.distance.adjust = TRUE, variance.normalization = TRUE,boot = TRUE)
-head(boot.result.rmsd)
-plot.RMSD(boot.result.rmsd, method="",boot = TRUE)
-
-boot.result.rmsd2 <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
-                      density.distance = FALSE, density.distance.adjust = FALSE, variance.normalization = TRUE,boot = TRUE)
-head(boot.result.rmsd2)
-plot.RMSD(boot.result.rmsd2, method="",boot = TRUE)
-
-boot.result.rmsd3 <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
-                      density.distance = TRUE, density.distance.adjust = TRUE, variance.normalization = FALSE,boot = TRUE)
-head(boot.result.rmsd3)
-plot.RMSD(boot.result.rmsd3, method="",boot = TRUE)
-
-boot.result.rmsd4 <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
-                      density.distance = FALSE, density.distance.adjust = FALSE, variance.normalization = FALSE,boot = TRUE)
-head(boot.result.rmsd4)
-plot.RMSD(boot.result.rmsd4, method="",boot = TRUE)
-```
-
-> For Uniqueness Evaluation
-
-```{r}
-result.uniq = eval.uniqueness(real.data = exp.data, pred.data = sub.data,boot = TRUE)
-result.uniq
-plot.uniqueness(result.uniq, method="",boot = TRUE)
-
-result.bootvar.uniq = eval.uniqueness(real.data = exp.data, pred.data = sub.data,boot = TRUE,boot.var = T)
-result.bootvar.uniq
-plot.uniqueness(result.bootvar.uniq, method="",boot = TRUE)
+# resampling row
+result.uniq.10.h = eval.uniqueness(real.data = exp.data.10.h, pred.data = sub.data.10.h,boot = TRUE)
+result.uniq.10.h
+plot.uniqueness(result.uniq.10.h, method="", boot = TRUE,use.ci = T)
+plot.uniqueness(result.uniq.10.h, method="", boot = TRUE,use.ci = F)
+# generating from experimental distribution
+result.bootvar.uniq.10.h = eval.uniqueness(real.data = exp.data.10.h, pred.data = sub.data.10.h,boot = TRUE,boot.var = T)
+result.bootvar.uniq.10.h
+plot.uniqueness(result.bootvar.uniq.10.h, method="",boot = TRUE,use.ci = F)
 ```
 

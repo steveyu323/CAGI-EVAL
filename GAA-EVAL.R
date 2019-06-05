@@ -566,14 +566,14 @@ eval.Correlation <-
       # real.data <- read.RealData(file = "exp_data.csv", sep = ",",
       #                            col.id = 2, col.value = 5, col.sd = 6)
       # pred.data <- read.Submission.Folder(folder.name = "prediction/",col.id = 1,
-      #                                     col.value = 2, col.sd = 3, real.data = exp.data)
+      #                                     col.value = 2, col.sd = 3, real.data = real.data)
       # method = "pearson"
       # sd.use = 0.3
       # z.transform = TRUE
       # boot.var = T
       # ################################
       
-      rep.time = 500
+      rep.time = 1000
       rep.obj = bootstrap.Helper(real.data, pred.data, rep.time, boot.var)
       real.rep = rep.obj$real.rep
       pred.rep = rep.obj$pred.rep
@@ -606,7 +606,13 @@ eval.Correlation <-
       cor.result = cbind(avg, ci_low, ci_high, sd, p.median)
       row.names(cor.result) = row.names(cor.rep[[1]])
       colnames(cor.result) = c("avg", "low_ci", "high_ci", "sd", "p.value")
+      # For Tucket Test, need to store the original value
+      ret = ls()
+      ret$summary = as.data.frame(cor.result)
+      ret$rawdat = cor.rep
+      return(ret)
     }
+
     return(as.data.frame(cor.result))
   }
 
@@ -711,7 +717,7 @@ eval.RMSD <- function(real.data,
   }
   
   if (boot) {
-    rep.time = 500
+    rep.time = 1000
     rep.obj = bootstrap.Helper(real.data, pred.data, rep.time, boot.var)
     real.rep = rep.obj$real.rep
     pred.rep = rep.obj$pred.rep
@@ -1121,7 +1127,7 @@ eval.uniqueness = function(real.data,
   row.names(result) = colnames(grouped.pred.data$value)
   
   if (boot) {
-    rep.time = 500
+    rep.time = 1000
     rep.obj = bootstrap.Helper(real.data, pred.data, rep.time, boot.var)
     real.rep = rep.obj$real.rep
     pred.rep = rep.obj$pred.rep
