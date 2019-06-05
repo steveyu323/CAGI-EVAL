@@ -104,7 +104,7 @@ plot.Correlation(boot.result.cor.spearman.10.h$summary, "spearman",boot = TRUE)
 ```{r}
 # with variance.normalization + without density.distance
 boot.result.rmsd2.10.h <- eval.RMSD(real.data = exp.data.10.h, pred.data = sub.data.10.h,sd.use = NA, 
-                      density.distance = FALSE,variance.normalization = TRUE,boot = TRUE)
+                      density.distance = FALSE,variance.normalization = TRUE,boot = T)
 head(boot.result.rmsd2.10.h)
 plot.RMSD(boot.result.rmsd2.10.h, method="",boot = TRUE)
 
@@ -118,10 +118,12 @@ plot.RMSD(boot.result.rmsd.10.h, method="",boot = TRUE)
 ## Cut-off-based Evaluation
    threshold = 0.6: The cutoff for positive/negative value
 ```{r}
-result.auc.10.h <- eval.AUC(real.data =exp.data.10.h, pred.data = sub.data.10.h, 
-                           threshold = 0)
-head(result.auc.10.h$results)
-plot.AUC.bar(result.auc.10.h$results)
+result.auc.10.h <- eval.AUC.only(real.data =exp.data.10.h, pred.data = sub.data.10.h, 
+                           threshold = 0,boot = T,boot.var = F)
+
+head(result.auc.10.h)
+
+plot.RMSD(result.auc.10.h, method="",boot = TRUE)
 ```
 
 ## Uniqueness Evaluation

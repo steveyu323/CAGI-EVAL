@@ -864,6 +864,113 @@ eval.AUC <-
   }
 
 
+eval.AUC.only <-
+  function(real.data,
+           pred.data,
+           threshold = 0.5,
+           sd.use = NA,
+           lower.positive = F,
+           z.transform = F,boot = F, boot.var = F) {
+    # remove rows with NA values
+    filter <- !is.na(real.data$value)
+    real.data$value <- real.data$value[filter]
+    pred.data$value <- pred.data$value[filter, ]
+    # sd
+    sd.enable <- is.numeric(sd.use) & length(real.data$sd) > 1
+    if (sd.enable) {
+      keep <- (real.data$sd < sd.use) & (!is.na(real.data$sd))
+      real.data$value <- real.data$value[keep]
+      pred.data$value <- pred.data$value[keep, ]
+    }
+    n <- length(real.data$value)
+    if (z.transform) {
+      z_dat = z.normalization(real.data, pred.data)
+      real.data$value = z_dat$real.data
+      pred.data$value = z_dat$pred.data
+    }
+    realClass <-
+      AUC.build.class(real.data$value, lower.positive, threshold)
+    print(realClass)
+    
+    AUC.Helper <- function(file.name, lower.positive) {
+      #get predicted classes
+      predClass <-
+        AUC.build.class(pred.data$value[, file.name], lower.positive, threshold)
+      #get positive
+      positive <- which(realClass == 1)
+      TP <-
+        length(which(predClass[positive] == realClass[positive]))
+      FN <-
+        length(which(predClass[positive] != realClass[positive]))
+      #get negative
+      neutral <- which(realClass == 0)
+      TN <-
+        length(which(predClass[neutral] == realClass[neutral]))
+      FP <-
+        length(which(predClass[neutral] != realClass[neutral]))
+      #get stats
+      sens <- TP / (TP + FN)
+      spec <- TN / (TN + FP)
+      bAccu <- (sens + spec) / 2
+      accuracy = (TP + TN) / (TP + FP + FN + TN)
+      precision = TP / (TP + FP)
+      f1_score = 2 * (sens * precision) / (sens + precision)
+      print(file.name)
+      # print(realClass)
+      pred <<-
+        prediction(predictions = pred.data$value[, file.name], labels = realClass)
+      perf <<- performance(pred, "tpr", "fpr")
+      auc <- performance(pred, "auc")
+      auc <- round(unlist(slot(auc, "y.values")), digits = 6)
+      result <-
+        c(
+          AUC = auc,
+          sensitivity = sens,
+          specificity = spec,
+          accuracy = accuracy,
+          precision = precision,
+          f1_score = f1_score,
+          bAccu = bAccu
+        )
+      return(result)
+    }
+    auc.summary <- sapply(colnames(pred.data$value),
+                          function(x)
+                            AUC.Helper(x, lower.positive))
+    auc.summary <- data.frame(t(auc.summary))
+    rownames(auc.summary) <- colnames(pred.data$value)
+    AUC = auc.summary[,1]
+    if (boot) {
+      rep.time = 5
+      rep.obj = bootstrap.Helper(real.data, pred.data, rep.time, boot.var)
+      real.rep = rep.obj$real.rep
+      pred.rep = rep.obj$pred.rep
+      auc.rep = lapply(1:rep.time, function(x)
+        eval.AUC.only(
+          real.data = real.rep[[x]],
+          pred.data = pred.rep[[x]],
+          boot = FALSE
+        ))
+      
+      auc.rep = list.cbind(lapply(1:rep.time, function(x)
+        auc.rep[[x]][,1]))
+      row.names(auc.rep) = row.names(auc.rep[[1]])
+      ci_low = list.rbind(lapply(1:nrow(auc.rep), function(x)
+        quantile(auc.rep[x,], probs = 0.05)))
+      ci_high = list.rbind(lapply(1:nrow(auc.rep), function(x)
+        quantile(auc.rep[x,], probs = 0.95)))
+      sd = list.rbind(lapply(1:nrow(auc.rep), function(x)
+        sd(auc.rep[x,])))
+      avg = list.rbind(lapply(1:nrow(auc.rep), function(x)
+        mean(auc.rep[x,])))
+      auc.result = cbind(avg, ci_low, ci_high, sd)
+      row.names(auc.result) = colnames(pred.data$value)
+      colnames(auc.result) = c("AUC", "low_ci", "high_ci", "sd")
+      AUC = auc.result
+    }
+    return(as.data.frame(AUC))
+  }
+
 
 
 
@@ -919,6 +1026,7 @@ plot.AUC.helper = function(file.name, results) {
     )
   return(g)
 }
+
 
 
 
