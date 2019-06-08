@@ -1,0 +1,309 @@
+---
+title: "cbs-plot-2011"
+author: "Changhua Yu"
+date: "6/6/2019"
+output: html_document
+---
+
+# A demo for CBS Submission evaluation package
+```{r, echo=T, results='hide',message=FALSE}
+source("../CBS-EVAL.R")
+library(purrr)
+```
+
+## read in files
+```{r}
+exp.data.11.h <- read.RealData(file = "exp_2011.csv", sep = "\t",
+                             col.id = 1, col.value = 2, col.sd = 3,na.character = 'NA')
+
+exp.data.11.l <- read.RealData(file = "exp_2011.csv", sep = "\t",
+                             col.id = 1, col.value = 4, col.sd = 5,na.character = 'NA')
+```
+
+```{r, echo=T, results='hide',message=FALSE}
+sub.data.11.h <- read.Submission.Folder(folder.name = "prediction_2011/",col.id = 1,
+                                      col.value = 2, col.sd = 3, real.data = exp.data.11.h)
+sub.data.11.l <- read.Submission.Folder(folder.name = "prediction_2011/",col.id = 1,
+                                      col.value = 4, col.sd = 5, real.data = exp.data.11.l)
+```
+
+## Plot for Kendall’s Tau correlation coefficient (KCC)
+> 2011 both high and low
+
+```{r}
+# Render coefficient value For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.kendall.11.h <- eval.Correlation(real.data = exp.data.11.h, pred.data = sub.data.11.h,method = "kendall", sd.use = NA,z.transform = F,boot = T)
+
+boot.result.cor.kendall.11.h$summary$cond = "high"
+id.h = unlist(map(strsplit(row.names(boot.result.cor.kendall.11.h$summary),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+boot.result.cor.kendall.11.h$summary$sid = as.numeric(id.h)
+boot.result.cor.kendall.11.h$summary$sidc = paste("SID#",id.h,sep = "")
+boot.result.cor.kendall.11.h$summary$ord = rank(boot.result.cor.kendall.11.h$summary$value)
+row.names(boot.result.cor.kendall.11.h$summary) = paste("SID#",id.h,sep = "")
+boot.result.cor.kendall.11.h$summary
+
+
+boot.result.cor.kendall.11.h$rawdat$cond = "high"
+id.h = unlist(map(strsplit(as.character(boot.result.cor.kendall.11.h$rawdat$Var2),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+boot.result.cor.kendall.11.h$rawdat$sid = as.numeric(id.h)
+boot.result.cor.kendall.11.h$rawdat$sidc = paste("SID#",id.h,sep = "")
+
+write.csv(boot.result.cor.kendall.11.h$summary,file = "./kcc/kcc_11_h_sum.csv")
+write.csv(boot.result.cor.kendall.11.h$rawdat,file = "./kcc/kcc_11_h_raw.csv")
+```
+
+```{r}
+# Render coefficient value For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.kendall.11.l <- eval.Correlation(real.data = exp.data.11.l, pred.data = sub.data.11.l,method = "kendall", sd.use = NA,z.transform = F,boot = T)
+
+boot.result.cor.kendall.11.l$summary$cond = "low"
+id.h = unlist(map(strsplit(row.names(boot.result.cor.kendall.11.l$summary),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+boot.result.cor.kendall.11.l$summary$sid = as.numeric(id.h)
+boot.result.cor.kendall.11.l$summary$sidc = paste("SID#",id.h,sep = "")
+boot.result.cor.kendall.11.l$summary$ord = rank(boot.result.cor.kendall.11.l$summary$value)
+row.names(boot.result.cor.kendall.11.l$summary) = paste("SID#",id.h,sep = "")
+boot.result.cor.kendall.11.l$summary
+head(boot.result.cor.kendall.11.l$rawdat)
+
+boot.result.cor.kendall.11.l$rawdat$cond = "low"
+id.h = unlist(map(strsplit(as.character(boot.result.cor.kendall.11.l$rawdat$Var2),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+boot.result.cor.kendall.11.l$rawdat$sid = as.numeric(id.h)
+boot.result.cor.kendall.11.l$rawdat$sidc = paste("SID#",id.h,sep = "")
+
+write.csv(boot.result.cor.kendall.11.l$summary,file = "./kcc/kcc_11_l_sum.csv")
+write.csv(boot.result.cor.kendall.11.l$rawdat,file = "./kcc/kcc_11_l_raw.csv")
+```
+
+> barplot for kcc
+
+```{r}
+kcc.h = read.csv(file = "./kcc/kcc_11_h_sum.csv")
+kcc.l = read.csv(file = "./kcc/kcc_11_l_sum.csv")
+kcc_dat = rbind(kcc.l,kcc.h)
+kcc_dat = add.star.cbs(kcc_dat)
+kcc_dat
+p.ci = plot.Correlation.cbs(kcc_dat, "kendall",boot = TRUE,use.ci = T)
+ggsave(filename=paste("./kcc/2011_kcc_bar_ci",".pdf"), plot=p.ci, width = 9, height = 7, units = "in",dpi = 300)
+p.se = plot.Correlation.cbs(kcc_dat, "kendall",boot = TRUE,use.ci = F)
+ggsave(filename=paste("./kcc/2011_kcc_bar_se",".pdf"), plot=p.se, width = 9, height = 7, units = "in",dpi = 300)
+```
+
+
+> boxplot for kcc
+
+```{r}
+kcc.h = read.csv(file = "./kcc/kcc_11_h_raw.csv")
+kcc.l = read.csv(file = "./kcc/kcc_11_l_raw.csv")
+kcc_dat = rbind(kcc.l,kcc.h)
+head(kcc_dat)
+# kcc_dat = add.star.cbs(kcc_dat)
+p = plot.box(kcc_dat,boot = TRUE,use.ci = F,method = "Kendall Correlation")
+p
+ggsave(filename=paste("./kcc/2011_kcc_box",".pdf"), plot=p, width = 12, height = 7, units = "in",dpi = 300)
+```
+
+
+## Plot for AUC
+> 2011 both high and low
+
+```{r}
+result.auc.11.h <- eval.AUC.only(real.data =exp.data.11.h, pred.data = sub.data.11.h, 
+                           threshold = 0,boot = T,boot.var = F)
+temp = result.auc.11.h
+result.auc.11.h$summary$cond = "high"
+id.h = unlist(map(strsplit(row.names(result.auc.11.h$summary),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.auc.11.h$summary$sid = as.numeric(id.h)
+result.auc.11.h$summary$sidc = paste("SID#",id.h,sep = "")
+result.auc.11.h$summary$ord = rank(result.auc.11.h$summary$value)
+row.names(result.auc.11.h$summary) = paste("SID#",id.h,sep = "")
+result.auc.11.h$summary$value
+
+
+result.auc.11.h$rawdat$cond = "high"
+
+id.h = unlist(map(strsplit(as.character(result.auc.11.h$rawdat$Var2),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.auc.11.h$rawdat$sid = as.numeric(id.h)
+result.auc.11.h$rawdat$sidc = paste("SID#",id.h,sep = "")
+
+write.csv(result.auc.11.h$summary,file = "./auc/auc_11_h_sum.csv")
+write.csv(result.auc.11.h$rawdat,file = "./auc/auc_11_h_raw.csv")
+```
+
+
+```{r}
+result.auc.11.l <- eval.AUC.only(real.data =exp.data.11.l, pred.data = sub.data.11.l, 
+                           threshold = 0,boot = T,boot.var = F)
+temp = result.auc.11.l
+result.auc.11.l$summary$cond = "low"
+id.h = unlist(map(strsplit(row.names(result.auc.11.l$summary),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.auc.11.l$summary$sid = as.numeric(id.h)
+result.auc.11.l$summary$sidc = paste("SID#",id.h,sep = "")
+result.auc.11.l$summary$ord = rank(result.auc.11.l$summary$value)
+row.names(result.auc.11.l$summary) = paste("SID#",id.h,sep = "")
+result.auc.11.l$summary$value
+
+
+result.auc.11.l$rawdat$cond = "low"
+
+id.h = unlist(map(strsplit(as.character(result.auc.11.l$rawdat$Var2),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.auc.11.l$rawdat$sid = as.numeric(id.h)
+result.auc.11.l$rawdat$sidc = paste("SID#",id.h,sep = "")
+
+write.csv(result.auc.11.l$summary,file = "./auc/auc_11_l_sum.csv")
+write.csv(result.auc.11.l$rawdat,file = "./auc/auc_11_l_raw.csv")
+```
+
+> barplot for auc
+
+```{r}
+auc.h = read.csv(file = "./auc/auc_11_h_sum.csv")
+auc.l = read.csv(file = "./auc/auc_11_l_sum.csv")
+auc_dat = rbind(auc.l,auc.h)
+auc_dat
+p.ci = plot.AUC.bar(auc_dat,boot = TRUE,use.ci = T,method = "AUC")
+ggsave(filename=paste("./auc/2011_auc_bar_ci",".pdf"), plot=p.ci, width = 9, height = 7, units = "in",dpi = 300)
+p.se = plot.AUC.bar(auc_dat,boot = TRUE,use.ci = F,method = "AUC")
+ggsave(filename=paste("./auc/2011_auc_bar_se",".pdf"), plot=p.se, width = 9, height = 7, units = "in",dpi = 300)
+```
+
+> boxplot for auc
+
+```{r}
+auc.h = read.csv(file = "./auc/auc_11_h_raw.csv")
+auc.l = read.csv(file = "./auc/auc_11_l_raw.csv")
+auc_dat = rbind(auc.l,auc.h)
+head(auc_dat)
+p = plot.box(auc_dat, "",boot = TRUE,use.ci = F,method = "AUC")
+p
+ggsave(filename=paste("./auc/2011_auc_box",".pdf"), plot=p, width = 12, height = 7, units = "in",dpi = 300)
+```
+
+## Plot for RMSD
+> 2011 both high and low
+
+```{r}
+result.rmsd.11.h <- eval.RMSD(real.data = exp.data.11.h, pred.data = sub.data.11.h,sd.use = NA, density.distance = FALSE,variance.normalization = FALSE,boot = T)
+
+
+result.rmsd.11.h$summary$cond = "high"
+id.h = unlist(map(strsplit(row.names(result.rmsd.11.h$summary),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.rmsd.11.h$summary$sid = as.numeric(id.h)
+result.rmsd.11.h$summary$sidc = paste("SID#",id.h,sep = "")
+result.rmsd.11.h$summary$ord = rank(result.rmsd.11.h$summary$value)
+row.names(result.rmsd.11.h$summary) = paste("SID#",id.h,sep = "")
+
+result.rmsd.11.h$rawdat$cond = "high"
+result.rmsd.11.h$rawdat
+id.h = unlist(map(strsplit(as.character(result.rmsd.11.h$rawdat$Var2),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.rmsd.11.h$rawdat$sid = as.numeric(id.h)
+result.rmsd.11.h$rawdat$sidc = paste("SID#",id.h,sep = "")
+
+write.csv(result.rmsd.11.h$summary,file = "./rmsd/rmsd_11_h_sum.csv")
+write.csv(result.rmsd.11.h$rawdat,file = "./rmsd/rmsd_11_h_raw.csv")
+```
+
+```{r}
+result.rmsd.11.l <- eval.RMSD(real.data = exp.data.11.l, pred.data = sub.data.11.l,sd.use = NA, density.distance = FALSE,variance.normalization = FALSE,boot = T)
+
+result.rmsd.11.l$summary$cond = "low"
+id.h = unlist(map(strsplit(row.names(result.rmsd.11.l$summary),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.rmsd.11.l$summary$sid = as.numeric(id.h)
+result.rmsd.11.l$summary$sidc = paste("SID#",id.h,sep = "")
+result.rmsd.11.l$summary$ord = rank(result.rmsd.11.l$summary$value)
+row.names(result.rmsd.11.l$summary) = paste("SID#",id.h,sep = "")
+
+result.rmsd.11.l$rawdat$cond = "low"
+result.rmsd.11.l$rawdat
+id.h = unlist(map(strsplit(as.character(result.rmsd.11.l$rawdat$Var2),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.rmsd.11.l$rawdat$sid = as.numeric(id.h)
+result.rmsd.11.l$rawdat$sidc = paste("SID#",id.h,sep = "")
+
+write.csv(result.rmsd.11.l$summary,file = "./rmsd/rmsd_11_l_sum.csv")
+write.csv(result.rmsd.11.l$rawdat,file = "./rmsd/rmsd_11_l_raw.csv")
+```
+
+> barplot for rmsd
+
+```{r}
+rmsd.h = read.csv(file = "./rmsd/rmsd_11_h_sum.csv")
+rmsd.l = read.csv(file = "./rmsd/rmsd_11_l_sum.csv")
+rmsd_dat = rbind(rmsd.l,rmsd.h)
+rmsd_dat
+p.ci = plot.AUC.bar(rmsd_dat,boot = TRUE,use.ci = T,method = "RMSD")
+ggsave(filename=paste("./rmsd/2011_rmsd_bar_ci",".pdf"), plot=p.ci, width = 9, height = 7, units = "in",dpi = 300)
+p.se = plot.AUC.bar(rmsd_dat,boot = TRUE,use.ci = F,method = "RMSD")
+ggsave(filename=paste("./rmsd/2011_rmsd_bar_se",".pdf"), plot=p.se, width = 9, height = 7, units = "in",dpi = 300)
+```
+
+> boxplot for rmsd
+
+```{r}
+rmsd.h = read.csv(file = "./rmsd/rmsd_11_h_raw.csv")
+rmsd.l = read.csv(file = "./rmsd/rmsd_11_l_raw.csv")
+rmsd_dat = rbind(rmsd.l,rmsd.h)
+head(rmsd_dat)
+
+p = plot.box(rmsd_dat,boot = TRUE,use.ci = F,method = "RMSD")
+p
+ggsave(filename=paste("./rmsd/2011_rmsd_box",".pdf"), plot=p, width = 12, height = 7, units = "in",dpi = 300)
+```
+
+
+## Plot for Uniqueness
+> 2011 both high and low
+
+```{r}
+sub.data.11.h$value = sub.data.11.h$value[,c(-2,-3,-10)]
+sub.data.11.h$sd = sub.data.11.h$sd[,c(-2,-3,-10)]
+sub.data.11.h$group = sub.data.11.h$group[c(-2,-3,-10),]
+sub.data.11.l$value = sub.data.11.l$value[,c(-2,-3,-10)]
+sub.data.11.l$sd = sub.data.11.l$sd[,c(-2,-3,-10)]
+sub.data.11.l$group = sub.data.11.l$group[c(-2,-3,-10),]
+```
+
+```{r}
+# Render coefficient value For Correlation-based Evaluation, provide mean, CI, and median pval
+result.uniq.11.h <- eval.uniqueness(real.data = exp.data.11.h, pred.data = sub.data.11.h,boot = TRUE)
+result.uniq.11.h$cond = "high"
+id.h = unlist(map(strsplit(row.names(result.uniq.11.h),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.uniq.11.h$sid = as.numeric(id.h)
+result.uniq.11.h$sidc = paste("SID#",id.h,sep = "")
+result.uniq.11.h$ord = rank(result.uniq.11.h$uniqueness)
+row.names(result.uniq.11.h) = paste("SID#",id.h,sep = "")
+write.csv(result.uniq.11.h,file = "./uniq/uniq_11_h.csv")
+```
+
+```{r}
+result.uniq.11.l <- eval.uniqueness(real.data = exp.data.11.l, pred.data = sub.data.11.l,boot = TRUE)
+result.uniq.11.l$cond = "low"
+id.h = unlist(map(strsplit(row.names(result.uniq.11.l),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.uniq.11.l$sid = as.numeric(id.h)
+result.uniq.11.l$sidc = paste("SID#",id.h,sep = "")
+row.names(result.uniq.11.l) = paste("SID#",id.h,sep = "")
+write.csv(result.uniq.11.l,file = "./uniq/uniq_11_l.csv")
+```
+
+```{r}
+uniq_dat = read.csv(file = "./uniq/uniq_11_all.csv")
+uniq_dat
+p = plot.uniqueness.cbs(uniq_dat,boot = TRUE,use.ci = T)
+p
+ggsave(filename=paste("./uniq/2011_uniq",".pdf"), plot=p, width = 7, height = 7, units = "in",dpi = 300)
+p2 = plot.uniqueness.cbs(uniq_dat,boot = TRUE,use.ci = T)
+p2
+ggsave(filename=paste("./uniq/2011_uniq_sd",".pdf"), plot=p, width = 7, height = 7, units = "in",dpi = 300)
+```

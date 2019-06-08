@@ -1,0 +1,64 @@
+---
+title: "Cbs-debug"
+author: "Changhua Yu"
+date: "6/6/2019"
+output: html_document
+---
+
+# A demo for CBS Submission evaluation package
+```{r, echo=T, results='hide',message=FALSE}
+source("../GAA-EVAL.R")
+```
+
+## Read in the Experimental data provided by CAGI
+```{r, echo=T, results='hide',message=FALSE}
+exp.data.11.h <- read.RealData(file = "exp_2011.csv", sep = "\t",
+                             col.id = 1, col.value = 2, col.sd = 3,na.character = 'NA')
+exp.data.11.h
+
+exp.data.11.l <- read.RealData(file = "exp_2011.csv", sep = "\t",
+                             col.id = 1, col.value = 4, col.sd = 5,na.character = 'NA')
+exp.data.11.l
+```
+
+## Read in the submission folders
+```{r, echo=T, results='hide',message=FALSE}
+sub.data.11.h <- read.Submission.Folder(folder.name = "prediction_2011/",col.id = 1,
+                                      col.value = 2, col.sd = 3, real.data = exp.data.11.h)
+sub.data.11.l <- read.Submission.Folder(folder.name = "prediction_2011/",col.id = 1,
+                                      col.value = 4, col.sd = 5, real.data = exp.data.11.l)
+```
+
+## Uniqueness Evaluation
+   uniqueness as adj.r^2 difference between total linear model and linear models without certain group
+   use.ci = T : if true error bar as confidence interval; if false, error bar as standard deviation
+> Check value before bootstrapping
+
+```{r}
+# remove #50 and #51 the baseline control methods from the analysis poop
+colnames(sub.data.11.h$value)
+sub.data.11.h$value = sub.data.11.h$value[,c(-2,-3,-10)]
+sub.data.11.h$sd = sub.data.11.h$sd[,c(-2,-3,-10)]
+sub.data.11.h$group = sub.data.11.h$group[c(-2,-3,-10),]
+
+# conduct the uniqueness calculation from the package function
+result.uniq.11.h = eval.uniqueness(real.data = exp.data.11.h, pred.data = sub.data.11.h,boot = F)
+result.uniq.11.h
+```
+
+``` {r}
+# use the following input to repeat with Laura's code
+debug.dat = sub.data.11.h$value[,row.names(result.uniq.11.h)]
+k1=summary(lm(exp.data.11.h$value ~ debug.dat))
+h=c()
+for(i in 1:9){
+  tmp=debug.dat[,-i]
+  k2=summary(lm(exp.data.11.h$value ~ tmp))
+  h=c(h,k2$adj.r.squared)
+}
+h
+k1$adj.r.squared
+d=k1$adj.r.squared - h
+d == result.uniq.11.h$uniqueness
+d
+```

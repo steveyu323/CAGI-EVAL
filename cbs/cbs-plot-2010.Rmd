@@ -1,0 +1,189 @@
+---
+title: "cbs-plot-2010"
+author: "Changhua Yu"
+date: "6/6/2019"
+output: html_document
+---
+# A demo for CBS Submission evaluation package
+```{r, echo=T, results='hide',message=FALSE}
+source("../GAA-EVAL.R")
+library(purrr)
+```
+
+## read in files
+```{r}
+exp.data.10.h <- read.RealData(file = "exp_2010.csv", sep = ":",
+                             col.id = 1, col.value = 2, col.sd = 3)
+
+exp.data.10.l <- read.RealData(file = "exp_2010.csv", sep = ":",
+                             col.id = 1, col.value = 4, col.sd = 5)
+```
+
+```{r, echo=T, results='hide',message=FALSE}
+sub.data.10.h <- read.Submission.Folder(folder.name = "prediction_2010/",col.id = 1,
+                                      col.value = 2, col.sd = 3, real.data = exp.data.10.h)
+# reorder based on grouped and submission id
+sub.data.10.h$value = sub.data.10.h$value[,c(1,7,8,9,10,11,12,13,16,14,15,17,18,19,2,3,4,5,6)]
+sub.data.10.h$sd = sub.data.10.h$sd[,c(1,7,8,9,10,11,12,13,16,14,15,17,18,19,2,3,4,5,6)]
+sub.data.10.h$group = sub.data.10.h$group[c(1,7,8,9,10,11,12,13,16,14,15,17,18,19,2,3,4,5,6),]
+
+
+# reorder based on grouped and submission id, exclude SID 13 as submit NA for all low value
+sub.data.10.l <- read.Submission.Folder(folder.name = "prediction_2010/",col.id = 1,
+                                      col.value = 4, col.sd = 5, real.data = exp.data.10.l)
+sub.data.10.l$value = sub.data.10.l$value[,c(1,7,8,9,10,11,12,13,16,14,15,17,19,2,3,4,5,6)]
+sub.data.10.lsd = sub.data.10.l$sd[,c(1,7,8,9,10,11,12,13,16,14,15,17,19,2,3,4,5,6)]
+sub.data.10.l$group = sub.data.10.l$group[c(1,7,8,9,10,11,12,13,16,14,15,17,19,2,3,4,5,6),]
+```
+
+## Plot for Kendall’s Tau correlation coefficient (KCC)
+> 2010 both high and low
+
+```{r}
+# Render coefficient value For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.kendall.10.h <- eval.Correlation(real.data = exp.data.10.h, pred.data = sub.data.10.h,
+                                       method = "kendall", sd.use = NA,z.transform = F,boot = T)
+boot.result.cor.kendall.10.h$summary$cond = "high"
+id.h = unlist(map(strsplit(row.names(boot.result.cor.kendall.10.h$summary),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+boot.result.cor.kendall.10.h$summary$sid = as.numeric(id.h)
+boot.result.cor.kendall.10.h$summary$sidc = paste("SID#",id.h,sep = "")
+boot.result.cor.kendall.10.h$summary$ord = rank(boot.result.cor.kendall.10.h$summary$avg)
+row.names(boot.result.cor.kendall.10.h$summary) = paste("SID#",id.h,sep = "")
+write.csv(boot.result.cor.kendall.10.h$summary,file = "./kcc/kcc_10_h.csv")
+```
+
+```{r}
+boot.result.cor.kendall.10.l <- eval.Correlation(real.data = exp.data.10.l, pred.data = sub.data.10.l,
+                                       method = "kendall", sd.use = NA,z.transform = F,boot = T)
+boot.result.cor.kendall.10.l$summary$cond = "low"
+id.l = unlist(map(strsplit(row.names(boot.result.cor.kendall.10.l$summary),split = "-"),2))
+id.l = unlist(map(strsplit(id.l,split = "_"),1))
+boot.result.cor.kendall.10.l$summary$sid = as.numeric(id.l)
+boot.result.cor.kendall.10.l$summary$sidc = paste("SID#",id.l,sep = "")
+row.names(boot.result.cor.kendall.10.l$summary) = paste("SID#",id.l,sep = "")
+write.csv(boot.result.cor.kendall.10.l$summary,file = "./kcc/kcc_10_l.csv")
+```
+
+```{r}
+# 2. Plot Correlation
+kcc_dat = read.csv(file = "./kcc/kcc_10_all.csv")
+kcc_dat = add.star.cbs(kcc_dat)
+kcc_dat
+p = plot.Correlation.cbs(kcc_dat, "kendall",boot = TRUE,use.ci =T)
+p
+ggsave(filename=paste("./kcc/2010_kcc",".pdf"), plot=p, width = 7, height = 7, units = "in",dpi = 300)
+```
+
+
+## Plot for AUC
+> 2010 both high and low
+
+```{r}
+# Render coefficient value For Correlation-based Evaluation, provide mean, CI, and median pval
+result.auc.10.h <- eval.AUC.only(real.data =exp.data.10.h, pred.data = sub.data.10.h, 
+                           threshold = 0,boot = T,boot.var = F)
+result.auc.10.h$cond = "high"
+id.h = unlist(map(strsplit(row.names(result.auc.10.h),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.auc.10.h$sid = as.numeric(id.h)
+result.auc.10.h$sidc = paste("SID#",id.h,sep = "")
+result.auc.10.h$ord = rank(result.auc.10.h$AUC)
+row.names(result.auc.10.h) = paste("SID#",id.h,sep = "")
+write.csv(result.auc.10.h,file = "./auc/auc_10_h.csv")
+```
+
+```{r}
+result.auc.10.l <- eval.AUC.only(real.data =exp.data.10.l, pred.data = sub.data.10.l, 
+                           threshold = 0,boot = T,boot.var = F)
+result.auc.10.l$cond = "low"
+id.h = unlist(map(strsplit(row.names(result.auc.10.l),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.auc.10.l$sid = as.numeric(id.h)
+result.auc.10.l$sidc = paste("SID#",id.h,sep = "")
+row.names(result.auc.10.l) = paste("SID#",id.h,sep = "")
+write.csv(result.auc.10.l,file = "./auc/auc_10_l.csv")
+```
+
+```{r}
+auc_dat = read.csv(file = "./auc/auc_10_all.csv")
+p = plot.AUC.bar(auc_dat,boot = TRUE,use.ci = T)
+ggsave(filename=paste("./auc/2010_auc",".pdf"), plot=p, width = 7, height = 7, units = "in",dpi = 300)
+```
+
+
+## Plot for RMSD
+> 2010 both high and low
+
+```{r}
+# Render coefficient value For Correlation-based Evaluation, provide mean, CI, and median pval
+result.rmsd.10.h <- eval.RMSD(real.data =exp.data.10.h, pred.data = sub.data.10.h, sd.use = NA, 
+                      density.distance = FALSE,variance.normalization = F,boot = T)
+
+
+result.rmsd.10.h$cond = "high"
+id.h = unlist(map(strsplit(row.names(result.rmsd.10.h),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.rmsd.10.h$sid = as.numeric(id.h)
+result.rmsd.10.h$sidc = paste("SID#",id.h,sep = "")
+result.rmsd.10.h$ord = rank(result.rmsd.10.h$RMSD)
+row.names(result.rmsd.10.h) = paste("SID#",id.h,sep = "")
+write.csv(result.rmsd.10.h,file = "./rmsd/rmsd_10_h.csv")
+```
+
+```{r}
+result.rmsd.10.l <- eval.RMSD(real.data = exp.data.10.l, pred.data = sub.data.10.l,sd.use = NA, 
+                      density.distance = FALSE,variance.normalization = FALSE,boot = T)
+
+result.rmsd.10.l$cond = "low"
+id.h = unlist(map(strsplit(row.names(result.rmsd.10.l),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.rmsd.10.l$sid = as.numeric(id.h)
+result.rmsd.10.l$sidc = paste("SID#",id.h,sep = "")
+row.names(result.rmsd.10.l) = paste("SID#",id.h,sep = "")
+write.csv(result.rmsd.10.l,file = "./rmsd/rmsd_10_l.csv")
+```
+
+```{r}
+rmsd_dat = read.csv(file = "./rmsd/rmsd_10_all.csv")
+p = plot.RMSD.cbs(rmsd_dat,boot = TRUE,use.ci = T)
+ggsave(filename=paste("./rmsd/2010_rmsd",".pdf"), plot=p, width = 7, height = 7, units = "in",dpi = 300)
+```
+
+
+## Plot for Uniqueness
+> 2010 both high and low
+
+## Plot for Uniqueness
+> 2010 both high and low
+
+```{r}
+# Render coefficient value For Correlation-based Evaluation, provide mean, CI, and median pval
+result.uniq.10.h <- eval.uniqueness(real.data = exp.data.10.h, pred.data = sub.data.10.h,boot = TRUE)
+result.uniq.10.h$cond = "high"
+id.h = unlist(map(strsplit(row.names(result.uniq.10.h),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.uniq.10.h$sid = as.numeric(id.h)
+result.uniq.10.h$sidc = paste("SID#",id.h,sep = "")
+result.uniq.10.h$ord = rank(result.uniq.10.h$uniqueness)
+row.names(result.uniq.10.h) = paste("SID#",id.h,sep = "")
+write.csv(result.uniq.10.h,file = "./uniq/uniq_10_h.csv")
+```
+
+```{r}
+result.uniq.10.l <- eval.uniqueness(real.data = exp.data.10.l, pred.data = sub.data.10.l,boot = TRUE)
+result.uniq.10.l$cond = "low"
+id.h = unlist(map(strsplit(row.names(result.uniq.10.l),split = "-"),2))
+id.h = unlist(map(strsplit(id.h,split = "_"),1))
+result.uniq.10.l$sid = as.numeric(id.h)
+result.uniq.10.l$sidc = paste("SID#",id.h,sep = "")
+row.names(result.uniq.10.l) = paste("SID#",id.h,sep = "")
+write.csv(result.uniq.10.l,file = "./uniq/uniq_10_l.csv")
+```
+
+```{r}
+uniq_dat = read.csv(file = "./uniq/uniq_10_all.csv")
+uniq_dat
+p = plot.uniqueness.cbs(uniq_dat,boot = TRUE,use.ci = T)
+ggsave(filename=paste("./uniq/2010_uniq",".pdf"), plot=p, width = 7, height = 7, units = "in",dpi = 300)
+```

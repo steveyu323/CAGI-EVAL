@@ -16,7 +16,7 @@ exp.data.10.h <- read.RealData(file = "exp_2010.csv", sep = ":",
 exp.data.10.h
 exp.data.10.l <- read.RealData(file = "exp_2010.csv", sep = ":",
                              col.id = 1, col.value = 4, col.sd = 5)
-exp.data.10.l
+
 
 exp.data.11.h <- read.RealData(file = "exp_2011.csv", sep = "\t",
                              col.id = 1, col.value = 2, col.sd = 3,na.character = 'NA')
@@ -31,9 +31,15 @@ exp.data.11.l
 ```{r, echo=T, results='hide',message=FALSE}
 sub.data.10.h <- read.Submission.Folder(folder.name = "prediction_2010/",col.id = 1,
                                       col.value = 2, col.sd = 3, real.data = exp.data.10.h)
-
+colnames(sub.data.10.h$value)
+c(1,7,8,9,10,11,12,13,16,14,15,17,18,19,2,3,4,5,6)
 sub.data.10.l <- read.Submission.Folder(folder.name = "prediction_2010/",col.id = 1,
                                       col.value = 4, col.sd = 5, real.data = exp.data.10.l)
+
+sub.data.10.l$value = sub.data.10.l$value[,-18]
+sub.data.10.l$sd = sub.data.10.l$sd[,-18]
+sub.data.10.l$group = sub.data.10.l$group[-18,]
+
 
 sub.data.11.h <- read.Submission.Folder(folder.name = "prediction_2011/",col.id = 1,
                                       col.value = 2, col.sd = 3, real.data = exp.data.11.h)
@@ -46,6 +52,19 @@ sub.data.11.l <- read.Submission.Folder(folder.name = "prediction_2011/",col.id 
   method = "pearson"
   sd.use = NA: no filter on the experimental sd value
   z.transformation does not have effect to pearson correlation
+
+> Check the consistency of value before bootstrapping
+  The numeric value is the same as Laura's output
+  
+```{r}
+# 1. Render coefficient value
+boot.result.cor.pearson.10.h <- eval.Correlation(real.data = exp.data.10.h, pred.data = sub.data.10.h,
+                                       method = "pearson", sd.use = NA,z.transform = F,boot = F)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.pearson.10.h[c(1,7,8,9,10,11,12,13,16,14,15,17,18,19,2,3,4,5,6),]
+```
+
+> conduct bootstrap
 
 ```{r}
 # 1. Render coefficient value
@@ -70,6 +89,18 @@ plot.Correlation(bootvar.result.cor.pearson.10.h$summary, "Pearson",boot = TRUE)
 
   method = "kendall"
   sd.use = NA: no filter on the experimental sd value
+> check the value before bootstrap
+  it is consistent with Laura's output
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.kendall.10.h <- eval.Correlation(real.data = exp.data.10.h, pred.data = sub.data.10.h,
+                                       method = "kendall", sd.use = NA,z.transform = F,boot = F)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.kendall.10.h[c(1,7,8,9,10,11,12,13,16,14,15,17,18,19,2,3,4,5,6),]
+```
+
+> conduct bootstrap
 
 ```{r}
 # 1. Render coefficient value
@@ -85,60 +116,596 @@ plot.Correlation(boot.result.cor.kendall.10.h$summary, "kendall",boot = TRUE)
   method = "spearman"
   sd.use = NA: no filter on the experimental sd value
 
+> Check value before bootstrap
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.spearman.10.h <- eval.Correlation(real.data = exp.data.10.h, pred.data = sub.data.10.h,
+                                       method = "spearman", sd.use = NA,z.transform = F,boot = F)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+head(boot.result.cor.spearman.10.h[c(1,7,8,9,10,11,12,13,16,14,15,17,18,19,2,3,4,5,6),])
+```
+
+> conduct bootstrap
+
 ```{r}
 # 1. Render coefficient value
 boot.result.cor.spearman.10.h <- eval.Correlation(real.data = exp.data.10.h, pred.data = sub.data.10.h,
                                        method = "spearman", sd.use = NA,z.transform = F,boot = T)
 # For Correlation-based Evaluation, provide mean, CI, and median pval
 head(boot.result.cor.spearman.10.h$summary)
-head(boot.result.cor.spearman.10.h$rawdat)
+
 # 2. Plot Correlation
 plot.Correlation(boot.result.cor.spearman.10.h$summary, "spearman",boot = TRUE)
 ```
+
 
 ## RMSD-based Evaluation 
 >   - (for demonstration, only present the bootstrapped result)
     - variance.normalization: defined on PPT
     - density.distance: RMSD based on distribution model of experimental value
-   
+
+> Check the value before bootstrap
+
 ```{r}
 # with variance.normalization + without density.distance
 boot.result.rmsd2.10.h <- eval.RMSD(real.data = exp.data.10.h, pred.data = sub.data.10.h,sd.use = NA, 
-                      density.distance = FALSE,variance.normalization = TRUE,boot = T)
-head(boot.result.rmsd2.10.h)
+                      density.distance = FALSE,variance.normalization = F,boot = F)
+boot.result.rmsd2.10.h
+```
+
+```{r}
+# with variance.normalization + without density.distance
+boot.result.rmsd2.10.h <- eval.RMSD(real.data = exp.data.10.h, pred.data = sub.data.10.h,sd.use = NA, 
+                      density.distance = FALSE,variance.normalization = FALSE,boot = T)
+boot.result.rmsd2.10.h[c(1,7,8,9,10,11,12,13,16,14,15,17,18,19,2,3,4,5,6),]
 plot.RMSD(boot.result.rmsd2.10.h, method="",boot = TRUE)
 
-# with variance.normalization + with density.distance
-boot.result.rmsd.10.h <- eval.RMSD(real.data = exp.data.10.h, pred.data = sub.data.10.h,sd.use = NA, 
-                      density.distance = TRUE, variance.normalization = TRUE, boot = TRUE)
-head(boot.result.rmsd.10.h)
-plot.RMSD(boot.result.rmsd.10.h, method="",boot = TRUE)
 ```
 
 ## Cut-off-based Evaluation
-   threshold = 0.6: The cutoff for positive/negative value
+   threshold = 0: The cutoff for positive/negative value
+> check the value before bootstrapping
+
+```{r}
+result.auc.10.h <- eval.AUC.only(real.data =exp.data.10.h, pred.data = sub.data.10.h, 
+                           threshold = 0,boot = F,boot.var = F)
+
+as.data.frame(result.auc.10.h[c(1,7,8,9,10,11,12,13,16,14,15,17,18,19,2,3,4,5,6),])
+```
+
 ```{r}
 result.auc.10.h <- eval.AUC.only(real.data =exp.data.10.h, pred.data = sub.data.10.h, 
                            threshold = 0,boot = T,boot.var = F)
 
 head(result.auc.10.h)
 
-plot.RMSD(result.auc.10.h, method="",boot = TRUE)
+plot.AUC.bar(result.auc.10.h, method="",boot = TRUE)
 ```
 
 ## Uniqueness Evaluation
    uniqueness as adj.r^2 difference between total linear model and linear models without certain group
    use.ci = T : if true error bar as confidence interval; if false, error bar as standard deviation
-   
+> Check value before bootstrapping
+
+```{r}
+# resampling row
+result.uniq.10.h = eval.uniqueness(real.data = exp.data.10.h, pred.data = sub.data.10.h,boot = F)
+result.uniq.10.h
+```
+
 ```{r}
 # resampling row
 result.uniq.10.h = eval.uniqueness(real.data = exp.data.10.h, pred.data = sub.data.10.h,boot = TRUE)
 result.uniq.10.h
 plot.uniqueness(result.uniq.10.h, method="", boot = TRUE,use.ci = T)
 plot.uniqueness(result.uniq.10.h, method="", boot = TRUE,use.ci = F)
+
+
 # generating from experimental distribution
 result.bootvar.uniq.10.h = eval.uniqueness(real.data = exp.data.10.h, pred.data = sub.data.10.h,boot = TRUE,boot.var = T)
 result.bootvar.uniq.10.h
 plot.uniqueness(result.bootvar.uniq.10.h, method="",boot = TRUE,use.ci = F)
+```
+
+
+
+
+
+## for 2010 low
+### Correlation-based Evaluation with bootstrap
+  method = "pearson"
+  sd.use = NA: no filter on the experimental sd value
+  z.transformation does not have effect to pearson correlation
+
+> Check the consistency of value before bootstrapping
+  The numeric value is the same as Laura's output
+  
+```{r}
+# 1. Render coefficient value
+boot.result.cor.pearson.10.l <- eval.Correlation(real.data = exp.data.10.l, pred.data = sub.data.10.l,
+                                       method = "pearson", sd.use = NA,z.transform = F,boot = F)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.pearson.10.l[c(1,7,8,9,10,11,12,13,16,14,15,17,18,2,3,4,5,6),]
+```
+
+> conduct bootstrap
+  Note: The bootstrapping for submission SID#7 constantly fail as it is always NA after resampling 
+  
+```{r}
+# 1. Render coefficient value
+boot.result.cor.pearson.10.l <- eval.Correlation(real.data = exp.data.10.l, pred.data = sub.data.10.l,
+                                       method = "pearson", sd.use = NA,z.transform = F,boot = T)
+# remove Group 5 submission 7 for now
+dat = boot.result.cor.pearson.10.l$summary[c(1,7,8,9,10,11,13,16,14,15,17,18,2,3,4,5,6),]
+dat
+head(boot.result.cor.pearson.10.l$rawdat)
+# 2. Plot Correlation
+plot.Correlation(dat, "Pearson",boot = TRUE,use.ci = F)
+```
+
+> Bootstrap using distribution modelling 
+  boot = T, boot.var = T
+
+```{r}
+bootvar.result.cor.pearson.10.l <- eval.Correlation(real.data = exp.data.10.l, pred.data = sub.data.10.l,
+                                       method = "pearson", sd.use = NA,z.transform = F,boot = T,boot.var = T)
+head(bootvar.result.cor.pearson.10.l$summary)
+plot.Correlation(bootvar.result.cor.pearson.10.l$summary, "Pearson",boot = TRUE)
+```
+
+  method = "kendall"
+  sd.use = NA: no filter on the experimental sd value
+> check the value before bootstrap
+  it is consistent with Laura's output
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.kendall.10.l <- eval.Correlation(real.data = exp.data.10.l, pred.data = sub.data.10.l,
+                                       method = "kendall", sd.use = NA,z.transform = F,boot = F)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.kendall.10.l[c(1,7,8,9,10,11,12,13,16,14,15,17,18,2,3,4,5,6),]
+```
+
+> conduct bootstrap
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.kendall.10.l <- eval.Correlation(real.data = exp.data.10.l, pred.data = sub.data.10.l,
+                                       method = "kendall", sd.use = NA,z.transform = F,boot = T)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.kendall.10.l$summary
+head(boot.result.cor.kendall.10.l$rawdat)
+# 2. Plot Correlation
+dat = boot.result.cor.kendall.10.l$summary[c(1,7,8,9,10,11,13,16,14,15,17,18,2,3,4,5,6),]
+plot.Correlation(dat, "kendall",boot = TRUE,use.ci = F)
+```
+
+  method = "spearman"
+  sd.use = NA: no filter on the experimental sd value
+
+> Check value before bootstrap
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.spearman.10.l <- eval.Correlation(real.data = exp.data.10.l, pred.data = sub.data.10.l,
+                                       method = "spearman", sd.use = NA,z.transform = F,boot = F)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+head(boot.result.cor.spearman.10.l[c(1,7,8,9,10,11,12,13,16,14,15,17,18,2,3,4,5,6),])
+```
+
+> conduct bootstrap
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.spearman.10.l <- eval.Correlation(real.data = exp.data.10.l, pred.data = sub.data.10.l,
+                                       method = "spearman", sd.use = NA,z.transform = F,boot = T)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.spearman.10.l$summary
+
+# 2. Plot Correlation
+dat = boot.result.cor.spearman.10.l$summary[c(1,7,8,9,10,11,13,16,14,15,17,18,2,3,4,5,6),]
+plot.Correlation(dat, "spearman",boot = TRUE,use.ci = F)
+```
+
+
+## RMSD-based Evaluation 
+>   - (for demonstration, only present the bootstrapped result)
+    - variance.normalization: defined on PPT
+    - density.distance: RMSD based on distribution model of experimental value
+
+> Check the value before bootstrap
+
+```{r}
+# with variance.normalization + without density.distance
+boot.result.rmsd2.10.l <- eval.RMSD(real.data = exp.data.10.l, pred.data = sub.data.10.l,sd.use = NA, 
+                      density.distance = FALSE,variance.normalization = F,boot = F)
+boot.result.rmsd2.10.l
+```
+
+```{r}
+# with variance.normalization + without density.distance
+boot.result.rmsd2.10.l <- eval.RMSD(real.data = exp.data.10.l, pred.data = sub.data.10.l,sd.use = NA, 
+                      density.distance = FALSE,variance.normalization = FALSE,boot = T)
+boot.result.rmsd2.10.l[c(1,7,8,9,10,11,12,13,16,14,15,17,18,2,3,4,5,6),]
+plot.RMSD(boot.result.rmsd2.10.l, method="",boot = TRUE)
+
+```
+
+## Cut-off-based Evaluation
+   threshold = 0: The cutoff for positive/negative value
+> check the value before bootstrapping
+
+```{r}
+result.auc.10.l <- eval.AUC.only(real.data =exp.data.10.l, pred.data = sub.data.10.l, 
+                           threshold = 0,boot = F,boot.var = F)
+as.data.frame(result.auc.10.l[c(1,7,8,9,10,11,12,13,16,14,15,17,18,2,3,4,5,6),])
+```
+
+```{r}
+result.auc.10.l <- eval.AUC.only(real.data =exp.data.10.l, pred.data = sub.data.10.l, 
+                           threshold = 0,boot = T,boot.var = F)
+
+head(result.auc.10.l)
+
+plot.AUC.bar(result.auc.10.l, method="",boot = TRUE)
+```
+
+## Uniqueness Evaluation
+   uniqueness as adj.r^2 difference between total linear model and linear models without certain group
+   use.ci = T : if true error bar as confidence interval; if false, error bar as standard deviation
+> Check value before bootstrapping
+
+```{r}
+# resampling row
+result.uniq.10.l = eval.uniqueness(real.data = exp.data.10.l, pred.data = sub.data.10.l,boot = F)
+result.uniq.10.l
+```
+
+```{r}
+# resampling row
+result.uniq.10.l = eval.uniqueness(real.data = exp.data.10.l, pred.data = sub.data.10.l,boot = TRUE)
+result.uniq.10.l
+plot.uniqueness(result.uniq.10.l, method="", boot = TRUE,use.ci = T)
+plot.uniqueness(result.uniq.10.l, method="", boot = TRUE,use.ci = F)
+
+
+# generating from experimental distribution
+result.bootvar.uniq.10.l = eval.uniqueness(real.data = exp.data.10.l, pred.data = sub.data.10.l,boot = TRUE,boot.var = T)
+result.bootvar.uniq.10.l
+plot.uniqueness(result.bootvar.uniq.10.l, method="",boot = TRUE,use.ci = F)
+```
+
+
+
+## for 2011 high
+### Correlation-based Evaluation with bootstrap
+  method = "pearson"
+  sd.use = NA: no filter on the experimental sd value
+  z.transformation does not have effect to pearson correlation
+
+> Check the consistency of value before bootstrapping
+  The numeric value is the same as Laura's output
+  
+```{r}
+# 1. Render coefficient value
+boot.result.cor.pearson.11.h <- eval.Correlation(real.data = exp.data.11.h, pred.data = sub.data.11.h,
+                                       method = "pearson", sd.use = NA,z.transform = F,boot = F)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.pearson.11.h[c(1,4:21,2,3),]
+```
+
+> conduct bootstrap
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.pearson.11.h <- eval.Correlation(real.data = exp.data.11.h, pred.data = sub.data.11.h,
+                                       method = "pearson", sd.use = NA,z.transform = F,boot = T)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.pearson.11.h$summary[c(1,4:21,2,3),]
+head(boot.result.cor.pearson.11.h$rawdat)
+# 2. Plot Correlation
+plot.Correlation(boot.result.cor.pearson.11.h$summary[c(1,4:21,2,3),], "Pearson",boot = TRUE)
+```
+
+> Bootstrap using distribution modelling 
+  boot = T, boot.var = T
+
+```{r}
+bootvar.result.cor.pearson.11.h <- eval.Correlation(real.data = exp.data.11.h, pred.data = sub.data.11.h,
+                                       method = "pearson", sd.use = NA,z.transform = F,boot = T,boot.var = T)
+head(bootvar.result.cor.pearson.11.h$summary)
+plot.Correlation(bootvar.result.cor.pearson.11.h$summary, "Pearson",boot = TRUE)
+```
+
+  method = "kendall"
+  sd.use = NA: no filter on the experimental sd value
+> check the value before bootstrap
+  it is consistent with Laura's output
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.kendall.11.h <- eval.Correlation(real.data = exp.data.11.h, pred.data = sub.data.11.h,
+                                       method = "kendall", sd.use = NA,z.transform = F,boot = F)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.kendall.11.h[c(1,4:21,2,3),]
+```
+
+> conduct bootstrap
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.kendall.11.h <- eval.Correlation(real.data = exp.data.11.h, pred.data = sub.data.11.h,
+                                       method = "kendall", sd.use = NA,z.transform = F,boot = T)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+head(boot.result.cor.kendall.11.h$summary)
+head(boot.result.cor.kendall.11.h$rawdat)
+# 2. Plot Correlation
+plot.Correlation(boot.result.cor.kendall.11.h$summary, "kendall",boot = TRUE)
+```
+
+  method = "spearman"
+  sd.use = NA: no filter on the experimental sd value
+
+> Check value before bootstrap
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.spearman.11.h <- eval.Correlation(real.data = exp.data.11.h, pred.data = sub.data.11.h,
+                                       method = "spearman", sd.use = NA,z.transform = F,boot = F)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.spearman.11.h[c(1,4:21,2,3),]
+```
+
+> conduct bootstrap
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.spearman.11.h <- eval.Correlation(real.data = exp.data.11.h, pred.data = sub.data.11.h,
+                                       method = "spearman", sd.use = NA,z.transform = F,boot = T)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+head(boot.result.cor.spearman.11.h$summary)
+
+# 2. Plot Correlation
+plot.Correlation(boot.result.cor.spearman.11.h$summary, "spearman",boot = TRUE)
+```
+
+
+## RMSD-based Evaluation 
+>   - (for demonstration, only present the bootstrapped result)
+    - variance.normalization: defined on PPT
+    - density.distance: RMSD based on distribution model of experimental value
+
+> Check the value before bootstrap
+
+```{r}
+# with variance.normalization + without density.distance
+boot.result.rmsd2.11.h <- eval.RMSD(real.data = exp.data.11.h, pred.data = sub.data.11.h,sd.use = NA, 
+                      density.distance = FALSE,variance.normalization = F,boot = F)
+boot.result.rmsd2.11.h[c(1,4:21,2,3),]
+```
+
+```{r}
+# with variance.normalization + without density.distance
+boot.result.rmsd2.11.h <- eval.RMSD(real.data = exp.data.11.h, pred.data = sub.data.11.h,sd.use = NA, 
+                      density.distance = FALSE,variance.normalization = FALSE,boot = T)
+boot.result.rmsd2.11.h[c(1,4:21,2,3),]
+plot.RMSD(boot.result.rmsd2.11.h, method="",boot = TRUE)
+
+```
+
+## Cut-off-based Evaluation
+   threshold = 0: The cutoff for positive/negative value
+> check the value before bootstrapping
+
+```{r}
+result.auc.11.h <- eval.AUC.only(real.data =exp.data.11.h, pred.data = sub.data.11.h, 
+                           threshold = 0,boot = F,boot.var = F)
+
+as.data.frame(result.auc.11.h[c(1,4:21,2,3),])
+```
+
+```{r}
+result.auc.11.h <- eval.AUC.only(real.data =exp.data.11.h, pred.data = sub.data.11.h, 
+                           threshold = 0,boot = T,boot.var = F)
+
+head(result.auc.11.h)
+
+plot.AUC.bar(result.auc.11.h, method="",boot = TRUE)
+```
+
+## Uniqueness Evaluation
+   uniqueness as adj.r^2 difference between total linear model and linear models without certain group
+   use.ci = T : if true error bar as confidence interval; if false, error bar as standard deviation
+> Check value before bootstrapping
+
+```{r}
+sub.data.11.h$value = sub.data.11.h$value[,c(-2,-3,-10)]
+sub.data.11.h$sd = sub.data.11.h$sd[,c(-2,-3,-10)]
+sub.data.11.h$group = sub.data.11.h$group[c(-2,-3,-10),]
+
+result.uniq.11.h = eval.uniqueness(real.data = exp.data.11.h, pred.data = sub.data.11.h,boot = F)
+result.uniq.11.h
+```
+
+```{r}
+# resampling row
+result.uniq.11.h = eval.uniqueness(real.data = exp.data.11.h, pred.data = sub.data.11.h,boot = TRUE)
+result.uniq.11.h
+plot.uniqueness(result.uniq.11.h, method="", boot = TRUE,use.ci = T)
+
+plot.uniqueness(result.uniq.11.h, method="", boot = TRUE,use.ci = F)
+
+
+# generating from experimental distribution
+result.bootvar.uniq.11.h = eval.uniqueness(real.data = exp.data.11.h, pred.data = sub.data.11.h,boot = TRUE,boot.var = T)
+result.bootvar.uniq.11.h
+plot.uniqueness(result.bootvar.uniq.11.h, method="",boot = TRUE,use.ci = F)
+```
+
+## for 2011 low
+### Correlation-based Evaluation with bootstrap
+  method = "pearson"
+  sd.use = NA: no filter on the experimental sd value
+  z.transformation does not have effect to pearson correlation
+
+> Check the consistency of value before bootstrapping
+  The numeric value is the same as Laura's output
+  
+```{r}
+# 1. Render coefficient value
+boot.result.cor.pearson.11.l <- eval.Correlation(real.data = exp.data.11.l, pred.data = sub.data.11.l,
+                                       method = "pearson", sd.use = NA,z.transform = F,boot = F)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.pearson.11.l[c(1,4:21,2,3),]
+```
+
+> conduct bootstrap
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.pearson.11.l <- eval.Correlation(real.data = exp.data.11.l, pred.data = sub.data.11.l,
+                                       method = "pearson", sd.use = NA,z.transform = F,boot = T)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.pearson.11.l$summary[c(1,4:21,2,3),]
+head(boot.result.cor.pearson.11.l$rawdat)
+# 2. Plot Correlation
+plot.Correlation(boot.result.cor.pearson.11.l$summary[c(1,4:21,2,3),], "Pearson",boot = TRUE)
+```
+
+> Bootstrap using distribution modelling 
+  boot = T, boot.var = T
+
+```{r}
+bootvar.result.cor.pearson.11.l <- eval.Correlation(real.data = exp.data.11.l, pred.data = sub.data.11.l,
+                                       method = "pearson", sd.use = NA,z.transform = F,boot = T,boot.var = T)
+head(bootvar.result.cor.pearson.11.l$summary)
+plot.Correlation(bootvar.result.cor.pearson.11.l$summary, "Pearson",boot = TRUE)
+```
+
+  method = "kendall"
+  sd.use = NA: no filter on the experimental sd value
+> check the value before bootstrap
+  it is consistent with Laura's output
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.kendall.11.l <- eval.Correlation(real.data = exp.data.11.l, pred.data = sub.data.11.l,
+                                       method = "kendall", sd.use = NA,z.transform = F,boot = F)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.kendall.11.l[c(1,4:21,2,3),]
+```
+
+> conduct bootstrap
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.kendall.11.l <- eval.Correlation(real.data = exp.data.11.l, pred.data = sub.data.11.l,
+                                       method = "kendall", sd.use = NA,z.transform = F,boot = T)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+head(boot.result.cor.kendall.11.l$summary)
+head(boot.result.cor.kendall.11.l$rawdat)
+# 2. Plot Correlation
+plot.Correlation(boot.result.cor.kendall.11.l$summary, "kendall",boot = TRUE)
+```
+
+  method = "spearman"
+  sd.use = NA: no filter on the experimental sd value
+
+> Check value before bootstrap
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.spearman.11.l <- eval.Correlation(real.data = exp.data.11.l, pred.data = sub.data.11.l,
+                                       method = "spearman", sd.use = NA,z.transform = F,boot = F)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+boot.result.cor.spearman.11.l[c(1,4:21,2,3),]
+```
+
+> conduct bootstrap
+
+```{r}
+# 1. Render coefficient value
+boot.result.cor.spearman.11.l <- eval.Correlation(real.data = exp.data.11.l, pred.data = sub.data.11.l,
+                                       method = "spearman", sd.use = NA,z.transform = F,boot = T)
+# For Correlation-based Evaluation, provide mean, CI, and median pval
+head(boot.result.cor.spearman.11.l$summary)
+
+# 2. Plot Correlation
+plot.Correlation(boot.result.cor.spearman.11.l$summary, "spearman",boot = TRUE)
+```
+
+
+## RMSD-based Evaluation 
+>   - (for demonstration, only present the bootstrapped result)
+    - variance.normalization: defined on PPT
+    - density.distance: RMSD based on distribution model of experimental value
+
+> Check the value before bootstrap
+
+```{r}
+# with variance.normalization + without density.distance
+boot.result.rmsd2.11.l <- eval.RMSD(real.data = exp.data.11.l, pred.data = sub.data.11.l,sd.use = NA, 
+                      density.distance = FALSE,variance.normalization = F,boot = F)
+boot.result.rmsd2.11.l[c(1,4:21,2,3),]
+```
+
+```{r}
+# with variance.normalization + without density.distance
+boot.result.rmsd2.11.l <- eval.RMSD(real.data = exp.data.11.l, pred.data = sub.data.11.l,sd.use = NA, 
+                      density.distance = FALSE,variance.normalization = FALSE,boot = T)
+boot.result.rmsd2.11.l[c(1,4:21,2,3),]
+plot.RMSD(boot.result.rmsd2.11.l, method="",boot = TRUE)
+
+```
+
+## Cut-off-based Evaluation
+   threshold = 0: The cutoff for positive/negative value
+> check the value before bootstrapping
+
+```{r}
+result.auc.11.l <- eval.AUC.only(real.data =exp.data.11.l, pred.data = sub.data.11.l, 
+                           threshold = 0,boot = F,boot.var = F)
+
+as.data.frame(result.auc.11.l[c(1,4:21,2,3),])
+```
+
+```{r}
+result.auc.11.l <- eval.AUC.only(real.data =exp.data.11.l, pred.data = sub.data.11.l, 
+                           threshold = 0,boot = T,boot.var = F)
+
+head(result.auc.11.l)
+
+plot.AUC.bar(result.auc.11.l, method="",boot = TRUE)
+```
+
+## Uniqueness Evaluation
+   uniqueness as adj.r^2 difference between total linear model and linear models without certain group
+   use.ci = T : if true error bar as confidence interval; if false, error bar as standard deviation
+> Check value before bootstrapping
+
+```{r}
+sub.data.11.l$value = sub.data.11.l$value[,c(-2,-3,-10)]
+sub.data.11.l$sd = sub.data.11.l$sd[,c(-2,-3,-10)]
+sub.data.11.l$group = sub.data.11.l$group[c(-2,-3,-10),]
+
+
+result.uniq.11.l = eval.uniqueness(real.data = exp.data.11.l, pred.data = sub.data.11.l,boot = F)
+result.uniq.11.l
+```
+
+```{r}
+# resampling row
+result.uniq.11.l = eval.uniqueness(real.data = exp.data.11.l, pred.data = sub.data.11.l,boot = TRUE)
+result.uniq.11.l
+plot.uniqueness(result.uniq.11.l, method="", boot = TRUE,use.ci = T)
+
+plot.uniqueness(result.uniq.11.l, method="", boot = TRUE,use.ci = F)
+
+
+# generating from experimental distribution
+result.bootvar.uniq.11.l = eval.uniqueness(real.data = exp.data.11.l, pred.data = sub.data.11.l,boot = TRUE,boot.var = T)
+result.bootvar.uniq.11.l
+plot.uniqueness(result.bootvar.uniq.11.l, method="",boot = TRUE,use.ci = F)
 ```
 
