@@ -1,0 +1,134 @@
+---
+title: "GAA-EVAL-plotting"
+author: "Changhua Yu"
+date: "8/13/2019"
+output: html_document
+---
+
+```{r}
+source("./GAA-EVAL-new.R")
+load("./output.Rdata")
+```
+
+> barplot for kcc
+
+```{r}
+kcc_dat = result.cor.kendall.boot$summary
+# add the p-value * annotations
+kcc_dat = add.star(kcc_dat)
+
+# with confidence interval
+p.ci = plot.Bar(kcc_dat, "kendall Correlation",boot = TRUE,use.ci = T,with.stars = T)
+ggsave(filename=paste("./plots/kcc_bar_ci",".pdf"), plot=p.ci, width = 9, height = 7, units = "in",dpi = 300)
+
+# with standard error
+p.se = plot.Bar(kcc_dat, "kendall Correlation",boot = TRUE,use.ci = F,with.stars = T)
+ggsave(filename=paste("./plots/kcc_bar_se",".pdf"), plot=p.se, width = 9, height = 7, units = "in",dpi = 300)
+
+# change standard error to standard deviation
+kcc_dat.sd = kcc_dat
+kcc_dat.sd$se = kcc_dat.sd$se * 100
+# with standard deviation
+p.sd = plot.Bar(kcc_dat.sd, "kendall Correlation",boot = TRUE,use.ci = F,with.stars = T)
+ggsave(filename=paste("./plots/kcc_bar_sd",".pdf"), plot=p.sd, width = 9, height = 7, units = "in",dpi = 300)
+```
+
+> barplot for auc 0.4
+
+```{r}
+auc_dat = result.auc.0.4.boot$summary
+
+# with confidence interval
+p.ci = plot.Bar(auc_dat, "AUC cutoff = 0.4",boot = TRUE,use.ci = T)
+ggsave(filename=paste("./plots/auc_bar_ci",".pdf"), plot=p.ci, width = 9, height = 7, units = "in",dpi = 300)
+
+# with standard error
+p.se = plot.Bar(auc_dat, "AUC cutoff = 0.4",boot = TRUE,use.ci = F)
+ggsave(filename=paste("./plots/auc_bar_se",".pdf"), plot=p.se, width = 9, height = 7, units = "in",dpi = 300)
+
+# change standard error to standard deviation
+auc_dat.sd = auc_dat
+auc_dat.sd$se = auc_dat.sd$se * 100
+# with standard deviation
+p.sd = plot.Bar(auc_dat.sd, "AUC cutoff = 0.4",boot = TRUE,use.ci = F)
+ggsave(filename=paste("./plots/auc_bar_sd",".pdf"), plot=p.sd, width = 9, height = 7, units = "in",dpi = 300)
+```
+
+> barplot for auc 0.5
+
+```{r}
+auc_dat = result.auc.0.5.boot$summary
+
+# with confidence interval
+p.ci = plot.Bar(auc_dat, "AUC cutoff = 0.5",boot = TRUE,use.ci = T)
+ggsave(filename=paste("./plots/auc_bar_ci",".pdf"), plot=p.ci, width = 9, height = 7, units = "in",dpi = 300)
+
+# with standard error
+p.se = plot.Bar(auc_dat, "AUC cutoff = 0.5",boot = TRUE,use.ci = F)
+ggsave(filename=paste("./plots/auc_bar_se",".pdf"), plot=p.se, width = 9, height = 7, units = "in",dpi = 300)
+
+# change standard error to standard deviation
+auc_dat.sd = auc_dat
+auc_dat.sd$se = auc_dat.sd$se * 100
+# with standard deviation
+p.sd = plot.Bar(auc_dat.sd, "AUC cutoff = 0.5",boot = TRUE,use.ci = F)
+ggsave(filename=paste("./plots/auc_bar_sd",".pdf"), plot=p.sd, width = 9, height = 7, units = "in",dpi = 300)
+```
+
+> barplot for auc 0.9
+
+```{r}
+auc_dat = result.auc.0.9.boot$summary
+
+# with confidence interval
+p.ci = plot.Bar(auc_dat, "AUC cutoff = 0.9",boot = TRUE,use.ci = T)
+ggsave(filename=paste("./plots/auc_bar_ci",".pdf"), plot=p.ci, width = 9, height = 7, units = "in",dpi = 300)
+
+# with standard error
+p.se = plot.Bar(auc_dat, "AUC cutoff = 0.9",boot = TRUE,use.ci = F)
+ggsave(filename=paste("./plots/auc_bar_se",".pdf"), plot=p.se, width = 9, height = 7, units = "in",dpi = 300)
+
+# change standard error to standard deviation
+auc_dat.sd = auc_dat
+auc_dat.sd$se = auc_dat.sd$se * 100
+# with standard deviation
+p.sd = plot.Bar(auc_dat.sd, "AUC cutoff = 0.9",boot = TRUE,use.ci = F)
+ggsave(filename=paste("./plots/auc_bar_sd",".pdf"), plot=p.sd, width = 9, height = 7, units = "in",dpi = 300)
+```
+
+
+
+> barplot for rmsd
+
+```{r}
+rmsd_dat = result.rmsd.discrete.boot$summary
+
+# with confidence interval
+p.ci = plot.Bar(rmsd_dat, "RMSD",boot = TRUE,use.ci = T)
+ggsave(filename=paste("./plots/rmsd_bar_ci",".pdf"), plot=p.ci, width = 9, height = 7, units = "in",dpi = 300)
+
+# with standard error
+p.se = plot.Bar(rmsd_dat, "RMSD",boot = TRUE,use.ci = F)
+ggsave(filename=paste("./plots/rmsd_bar_se",".pdf"), plot=p.se, width = 9, height = 7, units = "in",dpi = 300)
+
+# change standard error to standard deviation
+rmsd_dat.sd = rmsd_dat
+rmsd_dat.sd$se = rmsd_dat.sd$se * 100
+# with standard deviation
+p.sd = plot.Bar(rmsd_dat.sd, "RMSD",boot = TRUE,use.ci = F)
+ggsave(filename=paste("./plots/rmsd_bar_sd",".pdf"), plot=p.sd, width = 9, height = 7, units = "in",dpi = 300)
+
+```
+
+> The ROC plots and the combined ROC plot
+
+```{r}
+p.roc.0.4 = plot.AUC.combined(result.auc.0.4)
+ggsave(filename=paste("./plots/roc_04",".pdf"), plot=p.roc.0.4, width = 9, height = 7, units = "in",dpi = 300)
+p.roc.0.5 = plot.AUC.combined(result.auc.0.5)
+ggsave(filename=paste("./plots/roc_05",".pdf"), plot=p.roc.0.4, width = 9, height = 7, units = "in",dpi = 300)
+p.roc.0.9 = plot.AUC.combined(result.auc.0.9)
+ggsave(filename=paste("./plots/roc_09",".pdf"), plot=p.roc.0.4, width = 9, height = 7, units = "in",dpi = 300)
+```
+
+

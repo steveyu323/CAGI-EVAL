@@ -1,0 +1,61 @@
+---
+title: "GAA-distr"
+author: "Changhua Yu"
+date: "6/19/2019"
+output: html_document
+---
+
+```{r, echo=T, results='hide',message=FALSE}
+source("./GAA-EVAL-new.R")
+library("pheatmap")
+```
+
+```{r}
+exp.data <- read.RealData(file = "./input/exp_data.csv", sep = ",",
+                             col.id = 2, col.value = 5, col.sd = 6)
+
+sub.data <- read.Submission.Folder(folder.name = "./input/prediction/",col.id = 1,
+                                      col.value = 2, col.sd = 3, real.data = exp.data)
+
+plot(density(exp.data$value))
+#any(exp.data$value>1)
+hist(exp.data$value,breaks = seq(-0.5,1.5,0.1))
+
+plot(x = exp.data$value,y = exp.data$sd)
+
+
+exp.data.name <- read.RealData(file = "./input/exp_data.csv", sep = ",",
+                             col.id = 4, col.value = 5, col.sd = 6)
+row.names(sub.data$value) = names(exp.data.name$value)
+row.names(sub.data$sd) = names(exp.data.name$sd)
+```
+
+## histogram of the experiment value distribution
+```{r}
+hist(exp.data$value,breaks = seq(-0.5,1.5,0.1))
+```
+
+## A histrogram for the distribution
+```{r}
+library("plotly")
+require(reshape2)
+library("purrr")
+a = as.data.frame(sub.data$value,stringsAsFactors = F)
+a = cbind(a,real = exp.data$value)
+
+
+h = lapply(1:ncol(a), function (x) hist(a[,x],breaks = seq(-0.25,1.45,0.1))$count)
+h1 = as.data.frame(list.rbind(h))
+colnames(h1) = hist(a[,3],breaks = seq(-0.25,1.45,0.1))$mids
+row.names(h1) = colnames(a)
+#h1
+```
+
+## A 2-D Heatmap for the Distribution
+```{r}
+pheatmap(h1,cluster_cols = F,cluster_rows = F)
+```
+
+> 1. From the above three plots, it seems that for now an AUC value around 0.4~0.6 for bisect most of the predictions  
+  2. The real data has value smaller than zero, whereas the submitted data don't
+  3. The real value have data up to ~1.3 whereas most of the submitted data have smaller upper range

@@ -1,0 +1,123 @@
+---
+title: "GAA-EVAL-generation"
+author: "Changhua Yu"
+date: "6/13/2019"
+output: html_document
+---
+> This file is used to generate all the evaluation data for GAA-EVAL assesssment paper, Rdata object will be saved for later use
+
+```{r, echo=T, results='hide',message=FALSE}
+source("./GAA-EVAL-new.R")
+```
+
+```{r}
+exp.data <- read.RealData(file = "./input/exp_data.csv", sep = ",",
+                             col.id = 2, col.value = 5, col.sd = 6)
+
+sub.data <- read.Submission.Folder(folder.name = "./input/prediction/",col.id = 1,
+                                      col.value = 2, col.sd = 3, real.data = exp.data)
+```
+
+## Correlation Based
+### Pearson + boot
+```{r}
+result.cor.pearson <- eval.Correlation(real.data = exp.data, pred.data = sub.data,method = "pearson", sd.use = NA,z.transform = F,boot = F)
+result.cor.pearson.boot <- eval.Correlation(real.data = exp.data, pred.data = sub.data,method = "pearson", sd.use = NA,z.transform = F,boot = T)
+
+```
+
+### Spearman + boot
+```{r}
+result.cor.spearman <- eval.Correlation(real.data = exp.data, pred.data = sub.data,method = "spearman", sd.use = NA,z.transform = F,boot = F)
+result.cor.spearman.boot <- eval.Correlation(real.data = exp.data, pred.data = sub.data,method = "spearman", sd.use = NA,z.transform = F,boot = T)
+```
+
+### Kendall + boot
+```{r}
+result.cor.kendall <- eval.Correlation(real.data = exp.data, pred.data = sub.data,method = "kendall", sd.use = NA,z.transform = F,boot = F)
+result.cor.kendall.boot <- eval.Correlation(real.data = exp.data, pred.data = sub.data,method = "kendall", sd.use = NA,z.transform = F,boot = T)
+```
+
+## Between method using Spearman's rank
+```{r}
+result.bM.spearman <-eval.Correlation.Between(real.data = exp.data, pred.data = sub.data, method = "spearman",sd.use = NA,z.transform = F,grouped = F)
+
+result.pCor <- eval.Partial.Correlation(real.data = exp.data, pred.data = sub.data, method = "spearman")
+
+```
+
+
+## RMSD 
+### density distance based + boot
+```{r}
+result.rmsd <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = T,variance.normalization = FALSE,boot = F)
+result.rmsd.boot <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = T,variance.normalization = FALSE,boot = TRUE)
+```
+
+### discrete value based
+```{r}
+result.rmsd.discrete <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = FALSE,variance.normalization = FALSE,boot = F)
+result.rmsd.discrete.boot <- eval.RMSD(real.data = exp.data, pred.data = sub.data,sd.use = NA, 
+                      density.distance = FALSE,variance.normalization = FALSE,boot = TRUE)
+
+```
+
+
+
+
+
+## Uniqueness
+```{r}
+result.uniq = eval.uniqueness(real.data = exp.data, pred.data = sub.data,boot = F)
+result.uniq.boot = eval.uniqueness(real.data = exp.data, pred.data = sub.data,boot = TRUE)
+result.uniq.boot
+```
+
+## Cutoff Based (Question: Which cutoff to be used)
+### Overlapping ROC curve cutoff = 1
+```{r}
+# Output all object in a list 
+result.auc.0.9 <- eval.AUC(real.data =exp.data, pred.data = sub.data, 
+                           threshold = 0.9)
+
+```
+
+### AUC and related metrics + boot
+```{r}
+result.auc.0.9.boot <- eval.AUC.only.exception(real.data = exp.data, pred.data = sub.data, 
+                           threshold = 0.9,boot = T,boot.var = F,real.ori = exp.data,pred.ori = sub.data)
+```
+
+### Overlapping ROC curve cutoff = 0.4
+```{r}
+# Output all object in a list 
+result.auc.0.4.boot <- eval.AUC.only.exception(real.data = exp.data, pred.data = sub.data, 
+                           threshold = 0.4,boot = T,boot.var = F,real.ori = exp.data,pred.ori = sub.data)
+```
+
+### Overlapping ROC curve cutoff = 0.5
+```{r}
+# Output all object in a list 
+result.auc.0.5.boot <- eval.AUC.only.exception(real.data = exp.data, pred.data = sub.data, 
+                           threshold = 0.5,boot = T,boot.var = F,real.ori = exp.data,pred.ori = sub.data)
+```
+
+```{r}
+result.auc.0.9 <- eval.AUC(real.data = exp.data, pred.data = sub.data, 
+                           threshold = 0.9,boot = F,boot.var = F)
+result.auc.0.4 <- eval.AUC(real.data = exp.data, pred.data = sub.data, 
+                           threshold = 0.4,boot = F,boot.var = F)
+result.auc.0.5 <- eval.AUC(real.data = exp.data, pred.data = sub.data, 
+                           threshold = 0.5,boot = F,boot.var = F)
+```
+
+```{r}
+getwd()
+save.image(file='output.RData')
+```
+
+
+
